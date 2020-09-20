@@ -64,11 +64,6 @@ py::array_t<float> assign_cic ( py::array_t<float> posd, int grid_size) {
         float xi = posd_unckd(i,0), yi = posd_unckd(i,1), zi = posd_unckd(i,2);
         float xir = std::round(xi), yir = std::round(yi), zir = std::round(zi);
 
-        // int xc,yc,zc;
-        // xc = (int)xi;
-        // yc = (int)yi;
-        // zc = (int)zi;
-
         for (int u=-1; u < 1; u++){
             for (int v=-1; v<1; v++){
                 for (int w=-1; w<1; w++){
@@ -90,8 +85,6 @@ py::array_t<float> assign_cic ( py::array_t<float> posd, int grid_size) {
         // grid_mut_unckd(xc+1,yc+1,zc)   += W_cic(xc+1-xi)* W_cic(yc+1-yi)* W_cic(zc-zi);
         // grid_mut_unckd(xc+1,yc+1,zc+1) += W_cic(xc+1-xi)* W_cic(yc+1-yi)* W_cic(zc+1-zi);
     }
-    // grid_mut_unckd(1,2,1) = 2.56
-    // py::print("Hi\n",posd.at(1,0)," ", posd.shape(),"\n",grid,"\n", posd_unckd(1,2));
     return grid;
 }
 
