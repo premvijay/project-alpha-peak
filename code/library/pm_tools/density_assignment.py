@@ -1,4 +1,4 @@
-import particles_to_grid
+from . import particles_to_grid
 import numpy as np
 
 def assign_density(posd, box_size, grid_size = 512, scheme='CIC'):
@@ -13,5 +13,6 @@ def assign_density(posd, box_size, grid_size = 512, scheme='CIC'):
         raise NotImplementedError('Requested scheme is unknown or not yet implemented')
     density_grid = grid
     print(density_grid)
-    overdensity_grid = (density_grid / np.mean(density_grid)+1e-5) - 1
-    return overdensity_grid
+    overdensity_grid = density_grid / (np.mean(density_grid)+1e-5) - 1
+    print(density_grid)
+    return overdensity_grid, grid
