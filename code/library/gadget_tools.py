@@ -8,7 +8,10 @@ class Snapshot():
     def from_binary(self,filename = None,header=True):
         assert type(filename) is str, "This class requires the gadget filename as input"
         self.file = open(filename,'rb')
-        self.read_header()
+        if header==True:
+            self.read_header()
+        else:
+            pass
         self.prtcl_types = ["Gas","Halo","Disk",  "Bulge", "Stars", "Bndry"]
 
     def read_header(self):
