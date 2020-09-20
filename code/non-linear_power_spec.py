@@ -19,11 +19,11 @@ filepath = binary_files_dir + '/snapshot_200.0'
 snap = Snapshot()
 snap.from_binary(filepath)
 
-posd = snap.positions(prtcl_type="Halo", max_prtcl=4000000)
+posd = snap.positions(prtcl_type="Halo", max_prtcl=None)
 
 print(posd)
 
-delta, raw_grid = assign_density(posd, snap.box_size, grid_size = 128, scheme='TSC')
+delta, raw_grid = assign_density(posd, snap.box_size, grid_size = 512, scheme='TSC')
 
 # log10_delta_plus_1 = np.log10(1 + delta)
 delta_plus_1 = (1 + delta)
