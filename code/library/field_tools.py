@@ -9,10 +9,20 @@ import numpy as np
 from matplotlib import widgets, pyplot as plt
 import pandas as pd
 
-def compute_power_spec(FX):
+def compute_power_spec(FX,box_size):
     FK = np.fft.rfftn(FX)
-    Pk = pd.DataFrame(data=np.vstack((self.k.ravel(),
-                    np.abs(self.FK_computed.ravel())**2)).T,columns=['k','Pk']).sort_values('k')
+    
+    K = np.array(np.meshgrid(*[np.fft.fftfreq(x, d=box_size/x) *2*np.pi for x in FX.shape[:-1]],
+                                         np.fft.rfftfreq(FX.shape[-1]) *2*np.pi))
+
+    # k1 = np.fft.fftfreq(FX.shape[0],d=box_size/FX.shape[0])*2*np.pi
+    # k2 = np.fft.fftfreq(FX.shape[0],d=box_size/FX.shape[0])*2*np.pi
+
+    k = np.sqrt((K**2).sum(axis=0))
+
+    power_spec = pd.DataFrame(data=np.vstack((k.ravel(), #2*np.pi/k.ravel(), 
+                    np.abs(FK.ravel())**2)).T,columns=['k','Pk']).sort_values('k')
+    return power_spec.groupby(pd.cut(power_spec['k'], bins=10000)).mean()
 
 def power_law(b,n):
         """Returns a function which is a power law in one variable."""
