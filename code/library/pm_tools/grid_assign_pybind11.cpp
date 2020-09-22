@@ -50,23 +50,23 @@ py::array_t<float> assign_ngp ( py::array_t<float> posd, int grid_size) {
     py::array_t<float> grid({grid_size,grid_size,grid_size},0);
     auto grid_mut_unckd = grid.mutable_unchecked<3>();
 
-    // for (int u=0; u < grid_size; u++){
-    //     for (int v=0; v < grid_size; v++){
-    //         for (int w=0; w < grid_size; w++){
-    //             grid_mut_unckd(u,v,w) = 0;
-    //         }
-    //     }
-    // }
+    for (int u=0; u < grid_size; u++){
+        for (int v=0; v < grid_size; v++){
+            for (int w=0; w < grid_size; w++){
+                grid_mut_unckd(u,v,w) = 0;
+            }
+        }
+    }
     // grid = {0};
 
     for (py::size_t i = 0; i < num_prtcl; i++) {
         float xi = posd_unckd(i,0), yi = posd_unckd(i,1), zi = posd_unckd(i,2);
         float xif = std::floor(xi), yif = std::floor(yi), zif = std::floor(zi);
 
-        size_t xc = xif, yc = yif, zc = zif;
-        float xcc = xc + 0.5, ycc = yc + 0.5, zcc = zc + 0.5;
+        size_t xc = circ_index(xif,grid_size), yc = circ_index(yif,grid_size), zc = circ_index(zif,grid_size);
+        // float xcc = xc + 0.5, ycc = yc + 0.5, zcc = zc + 0.5;
 
-        grid_mut_unckd(xc,yc,zc) += W_cic(xcc-xi)* W_cic(ycc-yi)* W_cic(zcc-zi);
+        grid_mut_unckd(xc,yc,zc) += 1;
     }
     return grid;
 }
@@ -79,13 +79,13 @@ py::array_t<float> assign_cic ( py::array_t<float> posd, int grid_size) {
     py::array_t<float> grid({grid_size,grid_size,grid_size},0);
     auto grid_mut_unckd = grid.mutable_unchecked<3>();
 
-    // for (int u=0; u < grid_size; u++){
-    //     for (int v=0; v < grid_size; v++){
-    //         for (int w=0; w < grid_size; w++){
-    //             grid_mut_unckd(u,v,w) = 0;
-    //         }
-    //     }
-    // }
+    for (int u=0; u < grid_size; u++){
+        for (int v=0; v < grid_size; v++){
+            for (int w=0; w < grid_size; w++){
+                grid_mut_unckd(u,v,w) = 0;
+            }
+        }
+    }
     // grid = {0};
 
     for (py::size_t i = 0; i < num_prtcl; i++) {
@@ -124,13 +124,13 @@ py::array_t<float> assign_tsc ( py::array_t<float> posd, int grid_size) {
     py::array_t<float> grid({grid_size,grid_size,grid_size},0);
     auto grid_mut_unckd = grid.mutable_unchecked<3>();
 
-    // for (int u=0; u < grid_size; u++){
-    //     for (int v=0; v < grid_size; v++){
-    //         for (int w=0; w < grid_size; w++){
-    //             grid_mut_unckd(u,v,w) = 0;
-    //         }
-    //     }
-    // }
+    for (int u=0; u < grid_size; u++){
+        for (int v=0; v < grid_size; v++){
+            for (int w=0; w < grid_size; w++){
+                grid_mut_unckd(u,v,w) = 0;
+            }
+        }
+    }
     // grid = {0};
 
     for (py::size_t i = 0; i < num_prtcl; i++) {
