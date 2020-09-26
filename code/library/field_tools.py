@@ -10,19 +10,25 @@ from matplotlib import widgets, pyplot as plt
 import pandas as pd
 
 def compute_power_spec(FX,box_size):
-    FK = np.fft.rfftn(FX)
+    FK = np.fft.rfftn(FX) * (box_size/FX.shape[0])**FX.ndim
     
-    K = np.array(np.meshgrid(*[np.fft.fftfreq(x, d=box_size/x) *2*np.pi for x in FX.shape[:-1]],
-                                         np.fft.rfftfreq(FX.shape[-1]) *2*np.pi))
+    K = np.array(np.meshgrid(*[np.fft.fftfreq(n, d=box_size/n) *2*np.pi for n in FX.shape[:-1]],
+                                         np.fft.rfftfreq(FX.shape[-1], d=box_size/FX.shape[-1]) *2*np.pi))
+
+    assert FK.shape == K.shape[1:], "Reshape needed fftfreq"
 
     # k1 = np.fft.fftfreq(FX.shape[0],d=box_size/FX.shape[0])*2*np.pi
     # k2 = np.fft.fftfreq(FX.shape[0],d=box_size/FX.shape[0])*2*np.pi
 
     k = np.sqrt((K**2).sum(axis=0))
 
-    power_spec = pd.DataFrame(data=np.vstack((k.ravel(), #2*np.pi/k.ravel(), 
-                    np.abs(FK.ravel())**2)).T,columns=['k','Pk']).sort_values('k')
-    return power_spec.groupby(pd.cut(power_spec['k'], bins=10000)).mean()
+    Pk = (FK.real**2 + FK.imag**2) / (box_size)**FX.ndim
+    Pk[0,0,0] = 0
+
+    # power_spec =
+    return pd.DataFrame(data={'k':k.ravel(), 'Pk':Pk.ravel()}).groupby('k').mean().reset_index()
+    #2*np.pi/k.ravel(), 
+    # return power_spec.groupby(pd.cut(power_spec['k'], bins=10000)).mean()
 
 def power_law(b,n):
         """Returns a function which is a power law in one variable."""
