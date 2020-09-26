@@ -56,3 +56,73 @@ class Snapshot():
             end  = np.fromfile(self.file, dtype = np.int32, count =1)[0]
             print ('Position block is read and it contains ', end, 'bytes')
         return posd
+
+
+
+
+
+
+def read_positions_all_files(snapshot_filepath_prefix):
+    pos_list = []
+
+    file_number = 0
+    while True:
+        filename_suffix = '.{0:d}'.format(file_number)
+        # filepath = os.path.join(binary_files_dir, filename)
+        filepath = filepath_prefix + filename_suffix
+        print(filepath)
+
+        snap = Snapshot()
+        snap.from_binary(filepath)
+        pos_list.append(snap.positions(prtcl_type="Halo", max_prtcl=None))
+        t_bef, t_now = t_now, time()
+        print(t_now-t_bef)
+        if file_number == snap.num_files-1:
+            break
+        else:
+            file_number += 1
+
+    print('\n Particle positions read from all binaries in the snapshot')
+    t_bef, t_now = t_now, time()
+    print(t_now-t_bef)
+
+    posd = np.vstack(pos_list)
+    # del pos_list[:]
+
+    print('\n particle positions stacked')
+    t_bef, t_now = t_now, time()
+    print(t_now-t_bef)
+
+    return posd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,3 +1,5 @@
+# To use this run compile script
+
 from . import particles_to_grid
 import numpy as np
 

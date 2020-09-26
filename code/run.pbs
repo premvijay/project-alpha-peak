@@ -1,0 +1,8 @@
+#!/bin/bash
+#PBS -l walltime=0:06:00
+#PBS -l select=3:ncpus=10:mpiprocs=10:mem=270GB
+#PBS -N density_assignment
+#PBS -o out_file.txt
+#PBS -e err_file.txt
+cd $PBS_O_WORKDIR
+mpirun -np 29 python assign_density.py --snapdir /scratch/aseem/sims/bdm_cdm1024/r1/ --range 0 29 1 --scheme CIC --grid_size 512 --Pk --slice2D --outdir /mnt/home/student/cprem/myscratch/bdm_cdm1024/
