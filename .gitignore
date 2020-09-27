@@ -2,3 +2,6 @@
 *.pyc
 *.json
 code/library/density_assign/cic.exe
+code/err_file.txt
+code/out_file.txt
+code/hello.txt

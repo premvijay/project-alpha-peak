@@ -21,7 +21,7 @@ parser.add_argument('--snapdir', type=str, help='Directory containing the snapsh
 parser.add_argument('--range', type=int, nargs=3, help='Range of snapshots to choose')
 
 parser.add_argument('--scheme', type=str, help='Scheme for assigning particles to grid')
-parser.add_argument('--grid-size', type=int, help='Grid size : number of cells along each direction')
+parser.add_argument('--grid_size', type=int, help='Grid size : number of cells along each direction')
 
 parser.add_argument('--Pk', action='store_true', help='Compute and save power spectrum')
 parser.add_argument('--slice2D', action='store_true', help='Compute and save 2D projected slices')
@@ -45,26 +45,33 @@ print('\n Starting to read snapshots binaries')
 filename_prefix = '/snapshot_{0:03d}'.format(snapshot_number_this_process)
 filepath_prefix = args.snapdir + filename_prefix
 
+posd = read_positions_all_files(filepath_prefix)
+
+print('\n Particle positions read from all binaries in the snapshot')
+t_bef, t_now = t_now, time()
+print(t_now-t_bef)
+
 filepath = filepath_prefix + '.0'
 print(filepath)
 
 snap = Snapshot()
 snap.from_binary(filepath)
 
-posd = read_positions_all_files(filepath_prefix)
-
-
 delta = assign_density(posd, snap.box_size, args.grid_size, scheme=args.scheme)
 del posd
+
+print('\n Density assigned for snapshot {0:03d}'.format(snapshot_number_this_process))
+t_bef, t_now = t_now, time()
+print(t_now-t_bef)
 
 if args.slice2D:
     mmhpos = (48.25266, 166.29897, 98.36325)
     delta_slice = project_to_slice(delta, snap.box_size, axis=2, around_position=mmhpos, thick=10)
-    delta_slice.save(args.outdir+'/slice2D/'+'/slice_{0:03d}'.format(snapshot_number_this_process))
+    np.save(args.outdir+'/slice2D/'+'/slice_{0:03d}.npy'.format(snapshot_number_this_process), delta_slice)
 
 if args.Pk:
     power_spec = compute_power_spec(delta,snap.box_size)
-    filepath = args.outdir+'/power_spectrum/'+'Pk_{0:03d}'.format(snapshot_number_this_process)
+    filepath = args.outdir+'/power_spectrum/'+'Pk_{0:03d}.csv'.format(snapshot_number_this_process)
     power_spec.to_csv(filepath, sep='\t', index=False, 
                             float_format='%.8e', header=['k (h/Mpc)', 'P(k) (Mpc/h)^3'])
 
