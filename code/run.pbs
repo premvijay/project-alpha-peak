@@ -1,12 +1,13 @@
 #!/bin/bash
-#PBS -l walltime=0:20:00
+#PBS -l walltime=01:00:00
 #PBS -l select=7:ncpus=10:mem=270GB
 #PBS -N density_assignment
 #PBS -o out_file.txt
 #PBS -e err_file.txt
 cd $PBS_O_WORKDIR
 echo Hello > hello.txt
+module load gcc-8.2.0
+module load anaconda3
 bash ./library/pm_tools/compile_module.sh
 echo 'C++ code has been recompiled'
-export PYTHONPATH="$PYTHONPATH:/mnt/home/student/cprem/project-alpha-peak/code/library"
-seq 0 1 201 | parallel --sshloginfile $PBS_NODEFILE -j 10 python assign_density.py --snapdir /scratch/aseem/sims/bdm_cdm1024/r1/ --snap_i {} --scheme TSC --grid_size 512 --Pk --slice2D --outdir /mnt/home/student/cprem/myscratch/bdm_cdm1024/
+seq 0 1 201 | parallel --sshloginfile $PBS_NODEFILE -j 10 "cd $PBS_O_WORKDIR && ./run_single_snapshot.sh {}"

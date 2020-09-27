@@ -10,7 +10,7 @@ from pm_tools import assign_density, project_to_slice
 from field_tools import compute_power_spec
 
 import socket
-from mpi4py import MPI
+# from mpi4py import MPI
 import argparse
 
 parser = argparse.ArgumentParser(
@@ -30,9 +30,10 @@ parser.add_argument('--outdir', type=str, help='Directory to save the requested 
 
 args = parser.parse_args()
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-print('My rank is ', rank, 'Hostname is', socket.gethostname() )
+# comm = MPI.COMM_WORLD
+# rank = comm.Get_rank()
+# print('My rank is ', rank,)
+print('Hostname is', socket.gethostname() )
 
 # snapshots_to_run = np.arange(args.range[0],args.range[1],args.range[2], dtype=int)
 
