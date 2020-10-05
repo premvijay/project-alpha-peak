@@ -9,23 +9,22 @@ import numpy as np
 from matplotlib import widgets, pyplot as plt
 import pandas as pd
 
-def compute_power_spec(FX,box_size):
+def compute_power_spec(FX,box_size, interlace_with_FX=None):
     FK = np.fft.rfftn(FX) * (box_size/FX.shape[0])**FX.ndim
-    
+    if interlace_with_FX is not None:
+        FK += np.fft.rfftn(interlace_with_FX) * (box_size/interlace_with_FX.shape[0])**interlace_with_FX.ndim
+        FK /= 2
+
     K = np.array(np.meshgrid(*[np.fft.fftfreq(n, d=box_size/n) *2*np.pi for n in FX.shape[:-1]],
                                          np.fft.rfftfreq(FX.shape[-1], d=box_size/FX.shape[-1]) *2*np.pi))
 
     assert FK.shape == K.shape[1:], "Reshape needed fftfreq"
-
-    # k1 = np.fft.fftfreq(FX.shape[0],d=box_size/FX.shape[0])*2*np.pi
-    # k2 = np.fft.fftfreq(FX.shape[0],d=box_size/FX.shape[0])*2*np.pi
 
     k = np.sqrt((K**2).sum(axis=0))
 
     Pk = (FK.real**2 + FK.imag**2) / (box_size)**FX.ndim
     Pk[0,0,0] = 0
 
-    # power_spec =
     return pd.DataFrame(data={'k':k.ravel(), 'Pk':Pk.ravel()}).groupby('k').mean().reset_index()
     #2*np.pi/k.ravel(), 
     # return power_spec.groupby(pd.cut(power_spec['k'], bins=10000)).mean()
