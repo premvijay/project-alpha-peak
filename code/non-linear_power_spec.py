@@ -39,7 +39,7 @@ fig2.savefig(args.Pkdir+'/power_spec_{0:03d}.pdf'.format(0))
 def update(i):
     power_spec = pd.read_csv(args.Pkdir+'Pk_{0:03d}.csv'.format(i), sep='\t')
     power_spec.columns = ['k', 'Pk']
-    power_spec_grouped1 = power_spec.groupby(pd.cut(power_spec['k'], bins=np.linspace(power_spec['k'].iloc[1],power_spec['k'].iloc[-1], 200))).mean()
+    power_spec_grouped1 = power_spec.groupby(pd.cut(power_spec['k'], bins=np.linspace(power_spec['k'].iloc[1],power_spec['k'].iloc[-10], 200))).mean()
     plot2.set_xdata(power_spec_grouped1['k'])
     plot2.set_ydata(power_spec_grouped1['Pk'])
     ax2.set_title("Non-linear power spectrum from {}th snapshot.".format(i))
@@ -51,7 +51,7 @@ anim.save(args.Pkdir+"/non-linear_power_spectrum.mp4")#, writer="imagemagick")
 print("saved")
 
 
-
+# 
 
 
 
