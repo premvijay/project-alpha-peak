@@ -4,9 +4,10 @@ from . import particles_to_grid
 import numpy as np
 
 def assign_density(posd, box_size, grid_size = 512, scheme='CIC', shift=0):
-    posd *= grid_size / box_size    # This happens without using extra memory
-    posd -= shift
-    posd_scaled_to_grid_units = posd   
+    # posd *= grid_size / box_size    # This happens without using extra memory
+    # posd += shift
+    posd_scaled_to_grid_units = posd * grid_size / box_size + shift
+    # posd_scaled_to_grid_units += shift
 
     if scheme =='NGP':
         particle_grid = particles_to_grid.assign_ngp(posd_scaled_to_grid_units, grid_size)

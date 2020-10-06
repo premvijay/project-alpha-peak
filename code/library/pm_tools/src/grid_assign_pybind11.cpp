@@ -44,11 +44,11 @@ size_t circ_index(float index, int N){
 }
 
 
-py::array_t<float> assign_ngp ( py::array_t<float> posd, int grid_size) {
+py::array_t<double> assign_ngp ( py::array_t<float> posd, int grid_size) {
     auto posd_unckd = posd.unchecked<2>();
     py::size_t num_prtcl = posd.shape(0);
 
-    py::array_t<float> grid({grid_size,grid_size,grid_size},0);
+    py::array_t<double> grid({grid_size,grid_size,grid_size},0);
     auto grid_mut_unckd = grid.mutable_unchecked<3>();
 
     for (int u=0; u < grid_size; u++){
@@ -73,11 +73,11 @@ py::array_t<float> assign_ngp ( py::array_t<float> posd, int grid_size) {
 }
 
 
-py::array_t<float> assign_cic ( py::array_t<float> posd, int grid_size) {
+py::array_t<double> assign_cic ( py::array_t<float> posd, int grid_size) {
     auto posd_unckd = posd.unchecked<2>();
     py::size_t num_prtcl = posd.shape(0);
 
-    py::array_t<float> grid({grid_size,grid_size,grid_size},0);
+    py::array_t<double> grid({grid_size,grid_size,grid_size},0);
     auto grid_mut_unckd = grid.mutable_unchecked<3>();
 
     for (int u=0; u < grid_size; u++){
@@ -118,11 +118,11 @@ py::array_t<float> assign_cic ( py::array_t<float> posd, int grid_size) {
 }
 
 
-py::array_t<float> assign_tsc ( py::array_t<float> posd, int grid_size) {
+py::array_t<double> assign_tsc ( py::array_t<float> posd, int grid_size) {
     auto posd_unckd = posd.unchecked<2>();
     py::size_t num_prtcl = posd.shape(0);
 
-    py::array_t<float> grid({grid_size,grid_size,grid_size},0);
+    py::array_t<double> grid({grid_size,grid_size,grid_size},0);
     auto grid_mut_unckd = grid.mutable_unchecked<3>();
 
     for (int u=0; u < grid_size; u++){

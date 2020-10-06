@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import sys
 import pickle
-from time import time
+from time import time, sleep
 
 from gadget_tools import Snapshot, read_positions_all_files
 from pm_tools import assign_density, project_to_slice
@@ -50,7 +50,7 @@ filepath_prefix = os.path.join(snapdir, filename_prefix)
 
 posd = read_positions_all_files(filepath_prefix)
 
-posd = posd[:10000]
+# posd = posd[:10000]
 
 print('\n Particle positions read from all binaries in the snapshot')
 t_bef, t_now = t_now, time()
@@ -62,12 +62,16 @@ snap = Snapshot()
 snap.from_binary(filepath)
 
 delta = assign_density(posd, snap.box_size, args.grid_size, scheme=args.scheme)
+print('\n density assigned to main grid for snapshot {0:03d}'.format(args.snap_i))
+
 if args.interlace:
     delta_shifted = assign_density(posd, snap.box_size, args.grid_size, scheme=args.scheme, shift=1/2)
 else:
     delta_shifted = None
 
+
 del posd
+print('density assigned to shifted grid for snapshot {0:03d}'.format(args.snap_i))
 
 print('\n Density assigned for snapshot {0:03d}'.format(args.snap_i))
 t_bef, t_now = t_now, time()
