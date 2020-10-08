@@ -1,0 +1,90 @@
+import os
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+import matplotlib.animation
+import pandas as pd
+import argparse
+import pdb
+
+from gadget_tools import Snapshot
+
+parser = argparse.ArgumentParser(
+    description='Density field evolution from Gadget simulation.',
+    usage= 'python ./visualize_simulation.py')
+
+parser.add_argument('--simname', type=str, help='Directory name containing the saved data')
+
+args = parser.parse_args()
+
+grid_size = 256
+scheme = 'CIC'
+rundir = 'r1'
+
+simname = 'bdm_cdm1024' if args.simname is None else args.simname
+
+savesdir_global = os.path.join('/scratch/cprem/sims', simname, rundir, scheme, '{0:d}'.format(grid_size))
+
+savesdir = os.path.join('/scratch/cprem/sims', simname, rundir, 'halo_centric', scheme, '{0:d}'.format(grid_size))
+
+print(savesdir)
+
+
+slicedir = os.path.join(savesdir,'slice2D')
+infodir = os.path.join(savesdir_global,'info')
+plotsdir = os.path.join(savesdir, 'plots_and_anims')
+os.makedirs(plotsdir, exist_ok=True)
+
+i = 150
+
+with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
+    snap=pickle.load(infofile)
+
+
+
+box_size = 3.8
+
+
+
+delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}.npy'.format(i)) )
+
+
+fig1, (ax1) = plt.subplots(figsize=(13,7), dpi=150)
+
+fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,simname,grid_size,scheme))
+
+im1 = ax1.imshow(delta_slice+1, extent=[0,box_size,0,box_size], cmap='inferno', norm=LogNorm())
+cb1 = fig1.colorbar(im1,ax=ax1)
+cb1.set_label(r"$(1+\delta)$")
+ax1.set_title(r"Halo centric stacked 0.5 $h^{-1}$ Mpc thick slice")
+ax1.set_xlabel(r"$h^{-1}$Mpc")
+ax1.set_ylabel(r"$h^{-1}$Mpc")
+# ax1.set_xscale('log')
+
+
+
+
+fig1.savefig(os.path.join(plotsdir, 'single_snapshot.pdf'), bbox_inchex='tight')
+
+def update(i):
+    print(i, 'starting')
+    delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}.npy'.format(i)) )
+    im1.set_data(delta_slice+1)
+
+    with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
+        snap=pickle.load(infofile)
+    fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,simname,grid_size,scheme))
+    print(i,'stopping')
+
+
+anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(9,201), interval=500)
+
+# plt.rcParams['animation.ffmpeg_path'] = ''
+
+# Writer=matplotlib.animation.ImageMagickWriter
+Writer=matplotlib.animation.FFMpegWriter
+writer = Writer(fps=10)
+
+anim.save(os.path.join(plotsdir, 'simulation_visualisation.mp4'), writer=writer, dpi=150)
+print("saved")
