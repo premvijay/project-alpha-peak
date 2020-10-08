@@ -29,11 +29,9 @@ class Transform:
             for_cross = np.zeros(3)
             for_cross[i] = 1
             axis2 = np.cross(axis1,for_cross)
-            print(axis2)
             if np.any(axis2 > 1e-4):
                 break
             else:
-                print(i)
                 i-=1
         axis2 /= np.linalg.norm(axis2)
             
@@ -41,10 +39,11 @@ class Transform:
         axis3 /= np.linalg.norm(axis3)
 
         rot_mat = np.matrix([axis1,axis2,axis3])
-        print(rot_mat)
+        # print(rot_mat)
         assert np.isclose(np.linalg.det(rot_mat), 1), np.linalg.det(rot_mat)
-        rot = Rotation.from_matrix(rot_mat)
-        rot.apply(posd)
+        # rot = Rotation.from_matrix(rot_mat)
+        # rot.apply(posd)
+        return np.asarray((rot_mat * posd.T).T)
 
 def Region(shape='sphere',**kwargs):
     if shape=='sphere':
@@ -59,7 +58,7 @@ class SphereRegion:
         self.box_size = box_size
     
     def selectPrtcl(self, posd, shift_origin=False):
-        posd_select = posd[np.linalg.norm(np.minimum(np.fabs(posd-self.cen), np.fabs(posd-self.cen)-self.box_size), axis=1) <= self.rad]
+        posd_select = posd[np.linalg.norm(np.minimum(np.fabs(posd-self.cen), self.box_size-np.fabs(posd-self.cen)), axis=1) <= self.rad]
         if not shift_origin:
             return posd_select
         else:
@@ -75,7 +74,7 @@ class CubeRegion:
         self.box_size = box_size
     
     def selectPrtcl(self, posd, shift_origin=False):
-        posd_select = posd[( np.minimum(np.fabs(posd-cen), np.fabs(posd-cen)-box_size) < side/2 ).all(axis=1)]
+        posd_select = posd[( np.minimum(np.fabs(posd-self.cen), self.box_size-np.fabs(posd-self.cen)) < self.side/2 ).all(axis=1)]
         if not shift_origin:
             return posd_select
         else:
