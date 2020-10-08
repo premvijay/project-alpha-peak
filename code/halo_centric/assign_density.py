@@ -116,7 +116,7 @@ for h in halos_this_step.index:
     grid2D += project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=0.5)
     # delta2D /= (h+1)
 
-    pdb.set_trace()
+    # pdb.set_trace()
 
 
 
