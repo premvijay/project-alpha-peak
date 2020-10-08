@@ -1,0 +1,188 @@
+Hostname is ln2
+
+ Starting to read snapshots binaries
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.0
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+reading the second block (position) which contains  1600829964  bytes
+Position block is read and it contains  1600829964 bytes
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.1
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+reading the second block (position) which contains  1626972888  bytes
+Position block is read and it contains  1626972888 bytes
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.2
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+reading the second block (position) which contains  1600987056  bytes
+Position block is read and it contains  1600987056 bytes
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.3
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+reading the second block (position) which contains  1603128504  bytes
+Position block is read and it contains  1603128504 bytes
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.4
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+reading the second block (position) which contains  1624198260  bytes
+Position block is read and it contains  1624198260 bytes
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.5
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+reading the second block (position) which contains  1604642436  bytes
+Position block is read and it contains  1604642436 bytes
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.6
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+reading the second block (position) which contains  1626215664  bytes
+Position block is read and it contains  1626215664 bytes
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.7
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+reading the second block (position) which contains  1597927116  bytes
+Position block is read and it contains  1597927116 bytes
+
+ Particle positions read from all binaries in the snapshot
+17.170636415481567
+/scratch/aseem/sims/bdm_cdm1024/r1/snapshot_100.0
+Instantiated a snapshot object, use 'from_binary' method to read from binary.
+reading the first block (header) which contains  [256]  bytes
+Header block is read and it contains  256 bytes.
+(256, 256, 256)
+[[[0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  ...
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]]
+
+ [[0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  ...
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]]
+
+ [[0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  ...
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]]
+
+ ...
+
+ [[0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  ...
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]]
+
+ [[0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  ...
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]]
+
+ [[0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  ...
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]
+  [0. 0. 0. ... 0. 0. 0.]]] 3.8578330444444435 2 (1.9289165222222218, 1.9289165222222218, 1.9289165222222218) 0.5
+111.0 144.0
+(slice(None, None, None), slice(None, None, None), array([111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123,
+       124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136,
+       137, 138, 139, 140, 141, 142, 143]))
+> /mnt/home/student/cprem/project-alpha-peak/code/halo_centric/assign_density.py(100)<module>()
+-> for h in halos_this_step.index:
+(Pdb) (1073741824, 3)
+(Pdb) *** AttributeError: 'numpy.ndarray' object has no attribute 'focus'
+(Pdb) (196947, 3)
+(Pdb) (81934, 3)
+(Pdb) array([[1.83577047, 3.84930002, 3.8117187 ],
+       [1.88288532, 3.7147506 , 3.76672953],
+       [1.92314763, 3.70171461, 3.70235824],
+       ...,
+       [3.85005859, 2.95052592, 3.81863494],
+       [3.84490219, 2.94739812, 3.80728338],
+       [3.74923901, 3.43430515, 3.74184499]])
+(Pdb) array([[[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       ...,
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]]])
+(Pdb) array([[0.00000000e+00, 0.00000000e+00, 0.00000000e+00, ...,
+        7.11170688e-05, 0.00000000e+00, 0.00000000e+00],
+       [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, ...,
+        1.63380551e-04, 0.00000000e+00, 0.00000000e+00],
+       [0.00000000e+00, 0.00000000e+00, 0.00000000e+00, ...,
+        0.00000000e+00, 0.00000000e+00, 3.43234115e-03],
+       ...,
+       [1.07644625e-02, 1.47251844e-02, 1.54940030e-02, ...,
+        0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
+       [7.08746938e-02, 7.34515215e-02, 3.83941713e-02, ...,
+        0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
+       [1.14517263e-02, 5.23274710e-02, 2.47288823e-02, ...,
+        0.00000000e+00, 0.00000000e+00, 0.00000000e+00]])
+(Pdb) 
