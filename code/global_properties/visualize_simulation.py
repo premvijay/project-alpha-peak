@@ -12,7 +12,7 @@ from gadget_tools import Snapshot
 
 parser = argparse.ArgumentParser(
     description='Density field evolution from Gadget simulation.',
-    usage= 'python ./visualize_evolution_on_slice.py')
+    usage= 'python ./visualize_simulation.py')
 
 parser.add_argument('--simname', type=str, help='Directory name containing the saved data')
 
