@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l walltime=08:00:00
-#PBS -l select=8:ncpus=3:mem=300GB
+#PBS -l select=1:ncpus=3:mem=300GB
 #PBS -N halo_env_history
 #PBS -o out_file.txt
 #PBS -e err_file.txt

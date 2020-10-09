@@ -3,7 +3,7 @@ import pandas as pd
 
 import os
 import sys
-import pickle
+import pickle, json
 from time import time, sleep
 
 from gadget_tools import Snapshot, read_positions_all_files
@@ -95,37 +95,96 @@ L_cube = 5 * halos_root['rvir(11)'].mean() / 1e3
 R_sphere_focus = np.sqrt(3)/2 * L_cube * (1+1e-2)
 L_cube_focus = np.sqrt(3) * L_cube * (1+1e-2)
 
-grid2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
+delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
+mean_dens = posd.shape[0]/ (args.grid_size * snap.box_size / L_cube)**3
 
+print('\n halos list read from the file', flush=True)
+t_bef, t_now = t_now, time()
+print(t_now-t_bef, flush=True)
+
+j = 0
 for h in halos_this_step.index:
+    t1 = time()
+    t_now1 = t1
+    
+
     halo_cen = halos_this_step[['x(17)','y(18)','z(19)']].loc[h].to_numpy()
-    posd_focus = Region('cube', cen=halo_cen,side=L_cube_focus,box_size=snap.box_size).selectPrtcl(posd, shift_origin=True)
-    # posd_sphere = Region('sphere', cen=halo_cen,rad=R_sphere_focus,box_size=snap.box_size).selectPrtcl(posd)
+    region = Region('cube', cen=halo_cen,side=L_cube_focus,box_size=snap.box_size)
+    # region = Region('sphere', cen=halo_cen,rad=R_sphere_focus,box_size=snap.box_size)
+    posd_select = region.selectPrtcl(posd)
+
+    print('\n particles selected in a covering region', flush=True)
+    t_bef1, t_now1 = t_now1, time()
+    print(t_now1-t_bef1, flush=True)
+
+    posd_focus = region.shift_origin(posd_select)
+    # posd_focus =
+    
+    t2 = time()
+    print('\n particle positions shifted to origin at halo centre', flush=True)
+    t_bef1, t_now1 = t_now1, time()
+    print(t_now1-t_bef1, flush=True)
 
     if args.align:
         posd_focus = Transform.rotate(posd_focus, rot_vec = halos_this_step[['A[x](45)','A[y](46)','A[z](47)']].loc[h].to_numpy())
 
+    t3 = time()
+    print('\n particle positions rotated', flush=True)
+    t_bef1, t_now1 = t_now1, time()
+    print(t_now1-t_bef1, flush=True)
+
     posd_focus += L_cube/2
     posd_cube = posd_focus[np.all((posd_focus>0) & (posd_focus<L_cube), axis=1)]
 
+    t4 = time()
+    print('\n particles selected for the grid', flush=True)
+    t_bef1, t_now1 = t_now1, time()
+    print(t_now1-t_bef1, flush=True)
+
     particle_grid = assign_density(posd_cube, L_cube, args.grid_size, scheme=args.scheme, overdensity=False)
     
-    print(particle_grid.shape, flush=True)
+    t5 = time()
+    print('\n density assignment is done', flush=True)
+    t_bef1, t_now1 = t_now1, time()
+    print(t_now1-t_bef1, flush=True)
 
-    # delta2D *= h
-    grid2D += project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=0.5)
-    # delta2D /= (h+1)
+    grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=0.25)
+
+    delta2D *= j
+    delta2D += (grid2D / mean_dens) - 1
+    j+=1
+    delta2D /= j
+    
+    t6 = time()
+    print('\n 2d projected density is obtained', flush=True)
+    t_bef1, t_now1 = t_now1, time()
+    print(t_now1-t_bef1, flush=True)
+
+    if args.slice2D:
+        slicedir = os.path.join(outdir,'slice2D')
+        os.makedirs(slicedir, exist_ok=True)
+        np.save(os.path.join(slicedir, 'slice_{0:03d}.npy'.format(args.snap_i) ), delta2D)
+        with open(os.path.join(slicedir, 'slice_{0:03d}.meta'.format(args.snap_i)), 'w') as metafile:
+            dict = {'N_stack':j, 'L_cube':L_cube}
+            json.dump(dict,metafile, indent=True)
+            # file.write(i)
+    t7 = time()
+
+    print('time at each step', t1, t2, t3, t4, t5, t6, t7)
+    print('\n {} number of halo-centric images stacked'.format(j), flush=True)
+    t_bef, t_now = t_now, time()
+    print('total time per halo', t_now-t_bef, flush=True)
 
     # pdb.set_trace()
 
 
 
-mean_dens = posd.shape[0]/ (args.grid_size * snap.box_size / L_cube)**3
+
 
 del posd
 gc.collect()
 
-delta2D = grid2D / len(halos_this_step.index) / mean_dens
+
 
 print('\n density assigned to grid around halos for snapshot {0:03d}'.format(args.snap_i), flush=True)
 
@@ -133,7 +192,7 @@ print('\n density assigned to grid around halos for snapshot {0:03d}'.format(arg
 
 # delta = particle_grid 
 
-if slice2D:
+if args.slice2D:
     slicedir = os.path.join(outdir,'slice2D')
     os.makedirs(slicedir, exist_ok=True)
     np.save(os.path.join(slicedir, 'slice_{0:03d}.npy'.format(args.snap_i) ), delta2D)
