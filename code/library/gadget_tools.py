@@ -57,6 +57,7 @@ class Snapshot():
         else:
             end  = np.fromfile(file, dtype = np.int32, count =1)[0]
             print ('Position block is read and it contains ', end, 'bytes')
+
         return posd
 
 
@@ -64,7 +65,7 @@ class Snapshot():
 
 
 
-def read_positions_all_files(snapshot_filepath_prefix):
+def read_positions_all_files(snapshot_filepath_prefix,downsample=1):
     pos_list = []
 
     file_number = 0
@@ -76,7 +77,15 @@ def read_positions_all_files(snapshot_filepath_prefix):
 
         snap = Snapshot()
         snap.from_binary(filepath)
-        pos_list.append(snap.positions(prtcl_type="Halo", max_prtcl=None))
+
+        posd_thisfile = snap.positions(prtcl_type="Halo", max_prtcl=None)
+        if downsample != 1:
+            rand_ind = np.random.choice(posd_thisfile.shape[0], size=posd_thisfile.shape[0]//downsample, replace=False)
+            # print(snap.N_prtcl_thisfile, downsample, 'n', snap.N_prtcl_thisfile//downsample, rand_ind)
+            posd_thisfile = posd_thisfile[rand_ind]
+
+
+        pos_list.append(posd_thisfile)
         if file_number == snap.num_files-1:
             break
         else:

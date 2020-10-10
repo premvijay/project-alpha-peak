@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l walltime=08:00:00
-#PBS -l select=1:ncpus=3:mem=300GB
+#PBS -l walltime=03:00:00
+#PBS -l select=4:ncpus=25:mem=375GB
 #PBS -N halo_env_history
 #PBS -o out_file.txt
 #PBS -e err_file.txt
@@ -8,4 +8,4 @@ cd $PBS_O_WORKDIR
 echo Hello > hello.txt
 bash ../library/pm_tools/compile_module.sh
 echo 'C++ code has been recompiled'
-seq 9 1 200 | parallel --sshloginfile $PBS_NODEFILE -j 3 "cd $PBS_O_WORKDIR && ./run_single_snapshot.sh {}"
+seq 1 1 200 | parallel --sshloginfile $PBS_NODEFILE -j 25 "cd $PBS_O_WORKDIR && ./run_single_snapshot.sh {}"

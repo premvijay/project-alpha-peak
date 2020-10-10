@@ -16,11 +16,15 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('--simname', type=str, help='Directory name containing the saved data')
 
+parser.add_argument('--downsample', type=int, default=8, 
+                help='visualize the Downsampled particles in simulation by this many times')
+
 args = parser.parse_args()
 
-grid_size = 256
-scheme = 'CIC'
+grid_size = 512
+scheme = 'TSC'
 rundir = 'r1'
+
 
 simname = 'bdm_cdm1024' if args.simname is None else args.simname
 
@@ -36,19 +40,19 @@ infodir = os.path.join(savesdir_global,'info')
 plotsdir = os.path.join(savesdir, 'plots_and_anims')
 os.makedirs(plotsdir, exist_ok=True)
 
-i = 9
+i = 150
 
 with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
     snap=pickle.load(infofile)
 
-with open( os.path.join(slicedir, 'slice_{0:03d}.meta'.format(i)), 'r' ) as metafile:
+with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.meta'.format(i, args.downsample)), 'rt' ) as metafile:
     metadict = json.load(metafile)
 
 box_size = metadict['L_cube']
 
 
 
-delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}.npy'.format(i)) )
+delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.npy'.format(i, args.downsample)) )
 
 
 fig1, (ax1) = plt.subplots(figsize=(9,7), dpi=150)
@@ -66,7 +70,7 @@ ax1.set_ylabel(r"$h^{-1}$Mpc")
 
 
 
-fig1.savefig(os.path.join(plotsdir, 'single_snapshot_{0:03d}.pdf'.format(i)), bbox_inchex='tight')
+fig1.savefig(os.path.join(plotsdir, 'single_snapshot_{0:03d}_1by{1:d}.pdf'.format(i, args.downsample)), bbox_inchex='tight')
 
 # def update(i):
 #     print(i, 'starting')
