@@ -132,7 +132,11 @@ for h in halos_this_step.index:
      
 
     if args.align:
-        posd_focus = Transform.rotate(posd_focus, rot_vec = halos_this_step[['A[x](45)','A[y](46)','A[z](47)']].loc[h].to_numpy())
+        rot_vec = halos_this_step[['A[x](45)','A[y](46)','A[z](47)']].loc[h].to_numpy()
+        if np.isclose(rot_vec,0).all():
+            print("\n Can\'t rotate for this halo, probably spherical")
+        else:
+            posd_focus = Transform.rotate(posd_focus, rot_vec)
 
     t3 = time()
     print('\n particle positions rotated')
