@@ -55,7 +55,7 @@ box_size = metadict['L_cube']
 delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.npy'.format(i, args.downsample)) )
 
 
-fig1, (ax1) = plt.subplots(figsize=(9,7), dpi=150)
+fig1, ax1 = plt.subplots(figsize=(9,7), dpi=150)
 
 fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,simname,grid_size,scheme))
 
@@ -72,24 +72,28 @@ ax1.set_ylabel(r"$h^{-1}$Mpc")
 
 fig1.savefig(os.path.join(plotsdir, 'single_snapshot_{0:03d}_1by{1:d}.pdf'.format(i, args.downsample)), bbox_inchex='tight')
 
-# def update(i):
-#     print(i, 'starting')
-#     delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}.npy'.format(i)) )
-#     im1.set_data(delta_slice+1)
+def update(i):
+    print(i, 'starting')
+    delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.npy'.format(i, args.downsample)) )
+    im1.set_data(delta_slice+1+1e-5)
+    
+    with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.meta'.format(i, args.downsample)), 'rt' ) as metafile:
+        metadict = json.load(metafile)
+    ax1.set_title(r"0.25 $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
 
-#     with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
-#         snap=pickle.load(infofile)
-#     fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,simname,grid_size,scheme))
-#     print(i,'stopping')
+    with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
+        snap=pickle.load(infofile)
+    fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,simname,grid_size,scheme))
+    print(i,'stopping')
 
 
-# anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(9,201), interval=500)
+anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(1,201), interval=500)
 
-# # plt.rcParams['animation.ffmpeg_path'] = ''
+# plt.rcParams['animation.ffmpeg_path'] = ''
 
-# # Writer=matplotlib.animation.ImageMagickWriter
-# Writer=matplotlib.animation.FFMpegWriter
-# writer = Writer(fps=10)
+# Writer=matplotlib.animation.ImageMagickWriter
+Writer=matplotlib.animation.FFMpegWriter
+writer = Writer(fps=10)
 
-# anim.save(os.path.join(plotsdir, 'simulation_visualisation.mp4'), writer=writer, dpi=150)
-# print("saved")
+anim.save(os.path.join(plotsdir, 'simulation_visualisation_1by{0:d}.mp4'.format(args.downsample)), writer=writer, dpi=150)
+print("saved")
