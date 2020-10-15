@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -l walltime=02:00:00
+#PBS -l select=1:ncpus=4:mem=50GB
+#PBS -N halo_history
+#PBS -o out_file.txt
+#PBS -e err_file.txt
+cd /mnt/home/student/cprem/project-alpha-peak/code/halo_centric/
+##for Mass in 2e11 3e12 1e14
+##do
+##    echo Mass &
+##    python get_halo_list.py --M_around Mass --max_halos 500 &
+##done
+printf "2e11 \n3e12 \n1e14" | parallel -j 3 "python get_halo_list.py --M_around {} --max_halos 500"

@@ -14,6 +14,10 @@ parser.add_argument('--halosdir', type=str, help='Directory path for halos saved
 parser.add_argument('--simname', type=str, help='Simulation name')
 parser.add_argument('--rundir', type=str, help='Directory name containing the snapshot binaries')
 
+# parser.add_argument('--select', type=str, default='normal')
+parser.add_argument('--M_around', type=float, default=3e12)
+parser.add_argument('--max_halos', type=int, default=300)
+
 args = parser.parse_args()
 
 halosdir = '/scratch/aseem/halos' if args.halosdir is None else args.halosdir
@@ -36,16 +40,28 @@ halos = halos[halos['pid(5)']==-1]
 
 # print(halos.head(), '\n\n', halos.columns, '\n\n', halos.info(),'\n\n', halos.memory_usage())
 
-logbin = 10**np.arange(10,14,0.3)
-grouplist = list(halos.groupby(pd.cut(halos['mvir(10)'], bins=logbin)) )
+# logbin = 10**np.arange(10,14,0.3)
+# grouplist = list(halos.groupby(pd.cut(halos['mvir(10)'], bins=logbin)) )
 
-halos_select = grouplist[-1][1]
+# halos_select = grouplist[-1][1]
+
+# if args.select == 'dwarf':
+#     M_bin = 2e11
+# elif args.select == 'normal':
+
+
+# for M_around in args.M_around_list:
+
+halos['diff_bin'] = np.fabs(np.log10(halos['mvir(10)']) - np.log10(args.M_around))
+
+halos_select = halos.sort_values('diff_bin').iloc[:args.max_halos]
+
 # pdb.set_trace()
 
 # halos_select_all
 
-filepath = os.path.join(outdir,'halos_select')#_{0:03d}'.format(i))
-halos_select.to_csv(filepath, sep='\t')
+filepath = os.path.join(outdir,'halos_select_{0:.1e}_{1:d}.csv'.format(args.M_around,args.max_halos))
+halos_select.to_csv(filepath)
 
 while i>0:
     i -= 1
@@ -77,7 +93,7 @@ while i>0:
     #         pass
 
     # filepath = os.path.join(outdir,'halos_select_{0:03d}'.format(i))
-    halos_select.to_csv(filepath, sep='\t', mode='a', header=False)
+    halos_select.to_csv(filepath, mode='a', header=False)
     
 
 
