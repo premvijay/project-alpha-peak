@@ -19,6 +19,9 @@ parser.add_argument('--simname', type=str, help='Directory name containing the s
 parser.add_argument('--downsample', type=int, default=8, 
                 help='visualize the Downsampled particles in simulation by this many times')
 
+parser.add_argument('--M_around', type=float, default=3e12)
+parser.add_argument('--max_halos', type=int, default=500)
+
 args = parser.parse_args()
 
 grid_size = 512
@@ -45,14 +48,14 @@ i = 150
 with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
     snap=pickle.load(infofile)
 
-with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.meta'.format(i, args.downsample)), 'rt' ) as metafile:
+with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(i, args.downsample, args.M_around,args.max_halos)), 'rt' ) as metafile:
     metadict = json.load(metafile)
 
 box_size = metadict['L_cube']
 
 
 
-delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.npy'.format(i, args.downsample)) )
+delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(i, args.downsample, args.M_around,args.max_halos)) )
 
 
 fig1, ax1 = plt.subplots(figsize=(9,7), dpi=150)
@@ -70,14 +73,14 @@ ax1.set_ylabel(r"$h^{-1}$Mpc")
 
 
 
-fig1.savefig(os.path.join(plotsdir, 'single_snapshot_{0:03d}_1by{1:d}.pdf'.format(i, args.downsample)), bbox_inchex='tight')
+fig1.savefig(os.path.join(plotsdir, 'single_snapshot_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.pdf'.format(i, args.downsample, args.M_around,args.max_halos)), bbox_inchex='tight')
 
 def update(i):
     print(i, 'starting')
-    delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.npy'.format(i, args.downsample)) )
+    delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(i, args.downsample, args.M_around,args.max_halos)) )
     im1.set_data(delta_slice+1+1e-5)
     
-    with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.meta'.format(i, args.downsample)), 'rt' ) as metafile:
+    with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(i, args.downsample, args.M_around,args.max_halos)), 'rt' ) as metafile:
         metadict = json.load(metafile)
     ax1.set_title(r"0.25 $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
 
@@ -87,7 +90,7 @@ def update(i):
     print(i,'stopping')
 
 
-anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(1,201), interval=500)
+anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(6,201), interval=500)
 
 # plt.rcParams['animation.ffmpeg_path'] = ''
 
@@ -95,5 +98,5 @@ anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(1,201), int
 Writer=matplotlib.animation.FFMpegWriter
 writer = Writer(fps=10)
 
-anim.save(os.path.join(plotsdir, 'simulation_visualisation_1by{0:d}.mp4'.format(args.downsample)), writer=writer, dpi=150)
+anim.save(os.path.join(plotsdir, 'simulation_visualisation_1by{0:d}_{1:.1e}_{2:d}.mp4'.format(args.downsample, args.M_around,args.max_halos)), writer=writer, dpi=150)
 print("saved")

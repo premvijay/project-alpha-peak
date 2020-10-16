@@ -1,0 +1,8 @@
+#!/bin/bash
+#PBS -l walltime=01:00:00
+#PBS -l select=1:ncpus=16:mem=50GB
+#PBS -N visualise_halo_history
+#PBS -m abe
+#PBS -M premv@iucaa.in
+cd /mnt/home/student/cprem/project-alpha-peak/code/halo_centric/
+printf "2e11 \n3e12 \n1e14" | parallel -j 3 "python visualise.py --max_halos 500 --M_around {}"

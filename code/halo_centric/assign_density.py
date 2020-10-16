@@ -33,6 +33,9 @@ parser.add_argument('--snap_i', type=int, default=100, help='Snapshot index numb
 parser.add_argument('--downsample', type=int, default=1, 
                 help='Downsample the particles in simulation by this many times')
 
+parser.add_argument('--M_around', type=float, default=3e12)
+parser.add_argument('--max_halos', type=int, default=500)
+
 parser.add_argument('--scheme', type=str, default='CIC',
                 help='Scheme for assigning particles to grid')
 
@@ -56,7 +59,8 @@ args = parser.parse_args()
 # grid_size = 512 if args.grid_size is None else args.grid_size
 
 snapdir = os.path.join(args.simdir, args.simname, args.rundir)
-halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list/halos_select')
+halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list',
+'halos_select_{0:.1e}_{1:d}.csv'.format(args.M_around,args.max_halos))
 
 outdir = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', args.scheme, '{0:d}'.format(args.grid_size) )
 os.makedirs(outdir, exist_ok=True)
@@ -87,14 +91,14 @@ snap.from_binary(filepath)
 
 
 
-halos = pd.read_csv(halosfile, sep='\t', engine='c', index_col='id(1)')
+halos = pd.read_csv(halosfile, engine='c', index_col='id(1)')
 halos_this_step = halos[halos['Snap_num(31)']==args.snap_i]
 halos_root = halos[halos['Snap_num(31)']==200]
 
 # choose cube size
-
-
-L_cube = 5 * halos_root['rvir(11)'].mean() / 1e3
+R_vir = halos_this_step['rvir(11)'].mean() / 1e3
+R_vir_root = halos_root['rvir(11)'].mean() / 1e3
+L_cube = 10 * R_vir_root
 R_sphere_focus = np.sqrt(3)/2 * L_cube * (1+1e-2)
 L_cube_focus = np.sqrt(3) * L_cube * (1+1e-2)
 
@@ -177,9 +181,9 @@ for h in halos_this_step.index:
     if args.slice2D:
         slicedir = os.path.join(outdir,'slice2D')
         os.makedirs(slicedir, exist_ok=True)
-        np.save(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.npy'.format(args.snap_i, args.downsample) ), delta2D)
-        with open(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.meta'.format(args.snap_i, args.downsample)), 'w') as metafile:
-            dict = {'N_stack':j, 'L_cube':L_cube}
+        np.save(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(args.snap_i, args.downsample, args.M_around,args.max_halos) ), delta2D)
+        with open(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(args.snap_i, args.downsample, args.M_around,args.max_halos)), 'w') as metafile:
+            dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root}
             json.dump(dict,metafile, indent=True)
             # file.write(i)
     t7 = time()
@@ -205,10 +209,10 @@ print('\n density assigned to grid around halos for snapshot {0:03d}'.format(arg
 
 # delta = particle_grid 
 
-if args.slice2D:
-    slicedir = os.path.join(outdir,'slice2D')
-    os.makedirs(slicedir, exist_ok=True)
-    np.save(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.npy'.format(args.snap_i, args.downsample) ), delta2D)
+# if args.slice2D:
+#     slicedir = os.path.join(outdir,'slice2D')
+#     os.makedirs(slicedir, exist_ok=True)
+#     np.save(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}.npy'.format(args.snap_i, args.downsample) ), delta2D)
 
 
 
