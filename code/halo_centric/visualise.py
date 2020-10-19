@@ -22,6 +22,8 @@ parser.add_argument('--downsample', type=int, default=8,
 parser.add_argument('--M_around', type=float, default=3e12)
 parser.add_argument('--max_halos', type=int, default=500)
 
+parser.add_argument('--align', action='store_true', help='Visualize aligned and then stacked images')
+
 args = parser.parse_args()
 
 grid_size = 512
@@ -43,6 +45,11 @@ infodir = os.path.join(savesdir_global,'info')
 plotsdir = os.path.join(savesdir, 'plots_and_anims')
 os.makedirs(plotsdir, exist_ok=True)
 
+align_str = ''
+if not args.align:
+    slicedir = os.path.join(slicedir, 'unaligned')
+    align_str += '_unaligned'
+
 i = 150
 
 with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
@@ -60,6 +67,7 @@ delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3
 
 fig1, ax1 = plt.subplots(figsize=(9,7), dpi=150)
 
+
 fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,simname,grid_size,scheme))
 
 im1 = ax1.imshow(delta_slice+1+1e-5, extent=[-box_size/2,box_size/2,-box_size/2,box_size/2], cmap='nipy_spectral', norm=LogNorm(vmin=3e-1))
@@ -68,12 +76,16 @@ cb1.set_label(r"$(1+\delta)$")
 ax1.set_title(r"0.25 $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
 ax1.set_xlabel(r"$h^{-1}$Mpc")
 ax1.set_ylabel(r"$h^{-1}$Mpc")
+
+r_vir_circ = plt.Circle((0,0),radius=metadict['R_vir'], fill=False)
+ax1.add_patch(r_vir_circ)
+
 # ax1.set_xscale('log')
 
 
 
 
-fig1.savefig(os.path.join(plotsdir, 'single_snapshot_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.pdf'.format(i, args.downsample, args.M_around,args.max_halos)), bbox_inchex='tight')
+fig1.savefig(os.path.join(plotsdir, 'single_snapshot{4}_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.pdf'.format(i, args.downsample, args.M_around,args.max_halos, align_str)), bbox_inchex='tight')
 
 def update(i):
     print(i, 'starting')
@@ -82,6 +94,7 @@ def update(i):
     
     with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(i, args.downsample, args.M_around,args.max_halos)), 'rt' ) as metafile:
         metadict = json.load(metafile)
+    r_vir_circ.set_radius(metadict['R_vir'])
     ax1.set_title(r"0.25 $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
 
     with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
@@ -98,5 +111,5 @@ anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(6,201), int
 Writer=matplotlib.animation.FFMpegWriter
 writer = Writer(fps=10)
 
-anim.save(os.path.join(plotsdir, 'simulation_visualisation_1by{0:d}_{1:.1e}_{2:d}.mp4'.format(args.downsample, args.M_around,args.max_halos)), writer=writer, dpi=150)
+anim.save(os.path.join(plotsdir, 'simulation_visualisation{3}_1by{0:d}_{1:.1e}_{2:d}.mp4'.format(args.downsample, args.M_around,args.max_halos, align_str)), writer=writer, dpi=150)
 print("saved")

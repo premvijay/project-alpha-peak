@@ -177,10 +177,10 @@ for h in halos_this_step.index:
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
      
-    if not args.align:
-        slicedir = os.path.join(slicedir, 'unaligned')
     if args.slice2D:
         slicedir = os.path.join(outdir,'slice2D')
+        if not args.align:
+            slicedir = os.path.join(slicedir, 'unaligned')
         os.makedirs(slicedir, exist_ok=True)
         np.save(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(args.snap_i, args.downsample, args.M_around,args.max_halos) ), delta2D)
         with open(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(args.snap_i, args.downsample, args.M_around,args.max_halos)), 'w') as metafile:
