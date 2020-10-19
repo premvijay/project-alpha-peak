@@ -177,7 +177,8 @@ for h in halos_this_step.index:
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
      
-
+    if not args.align:
+        slicedir = os.path.join(slicedir, 'unaligned')
     if args.slice2D:
         slicedir = os.path.join(outdir,'slice2D')
         os.makedirs(slicedir, exist_ok=True)
