@@ -130,7 +130,7 @@ def update(i):
     print(i,'stopping')
 
 
-anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(6,200), interval=500)
+anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(6,args.tree_root+1), interval=500)
 
 # plt.rcParams['animation.ffmpeg_path'] = ''
 
@@ -138,5 +138,5 @@ anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(6,200), int
 Writer=matplotlib.animation.FFMpegWriter
 writer = Writer(fps=10)
 
-# anim.save(os.path.join(plotsdir, 'simulation_visualisation{3}_1by{0:d}_{1:.1e}_{2:d}.mp4'.format(args.downsample, args.M_around,args.max_halos, align_str)), writer=writer, dpi=150)
+anim.save(os.path.join(plotsdir, 'simulation_visualisation{3}_1by{0:d}_{1:.1e}_{2:d}.mp4'.format(args.downsample, args.M_around,args.max_halos, align_str)), writer=writer, dpi=150)
 print("saved")
