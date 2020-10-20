@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(
     description='Density field evolution from Gadget simulation.',
     usage= 'python ./visualize_simulation.py')
 
-parser.add_argument('--simname', type=str, help='Directory name containing the saved data')
+parser.add_argument('--simname', type=str, default='bdm_cdm1024', help='Directory name containing the saved data')
 
 args = parser.parse_args()
 
@@ -25,9 +25,9 @@ interlaced = True
 
 inlcd_str = '_interlaced' if interlaced==True else ''
 
-simname = 'bdm_cdm1024' if args.simname is None else args.simname
+# simname = 'bdm_cdm1024' if args.simname is None else args.simname
 
-savesdir = os.path.join('/scratch/cprem/sims', simname, rundir, scheme, '{0:d}'.format(grid_size))
+savesdir = os.path.join('/scratch/cprem/sims', args.simname, rundir, scheme, '{0:d}'.format(grid_size))
 
 print(savesdir)
 
@@ -54,7 +54,7 @@ delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}.npy'.format(i)) )
 
 fig1, (ax1,ax2) = plt.subplots(1,2, figsize=(13,7), dpi=150)
 
-fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,simname,grid_size,scheme))
+fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,args.simname,grid_size,scheme))
 
 im1 = ax1.imshow(delta_slice+1, extent=[0,box_size,0,box_size], cmap='inferno', norm=LogNorm())
 cb1 = fig1.colorbar(im1,ax=ax1)
@@ -103,7 +103,7 @@ def update(i):
 
     with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
         snap=pickle.load(infofile)
-    fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,simname,grid_size,scheme))
+    fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,args.simname,grid_size,scheme))
     print(i,'stopping')
 
 

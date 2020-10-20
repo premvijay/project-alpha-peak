@@ -85,7 +85,8 @@ with open(os.path.join(infodir, 'header_{0:03d}.p'.format(args.snap_i) ),'wb') a
 
 
 if args.slice2D:
-    mmhpos = (48.25266, 166.29897, 98.36325)
+    # mmhpos = (48.25266, 166.29897, 98.36325) #bdm_cdm
+    mmhpos = (48.31351, 166.24753, 98.45503000000001) #bdm_z
     delta_slice = project_to_slice(delta, snap.box_size, axis=2, around_position=mmhpos, thick=10)
     slicedir = os.path.join(outdir,'slice2D')
     os.makedirs(slicedir, exist_ok=True)

@@ -33,6 +33,7 @@ parser.add_argument('--snap_i', type=int, default=100, help='Snapshot index numb
 parser.add_argument('--downsample', type=int, default=1, 
                 help='Downsample the particles in simulation by this many times')
 
+parser.add_argument('--tree_root', type=int, default=200)
 parser.add_argument('--M_around', type=float, default=3e12)
 parser.add_argument('--max_halos', type=int, default=500)
 
@@ -93,7 +94,7 @@ snap.from_binary(filepath)
 
 halos = pd.read_csv(halosfile, engine='c', index_col='id(1)')
 halos_this_step = halos[halos['Snap_num(31)']==args.snap_i]
-halos_root = halos[halos['Snap_num(31)']==200]
+halos_root = halos[halos['Snap_num(31)']==args.tree_root]
 
 # choose cube size
 R_vir = halos_this_step['rvir(11)'].mean() / 1e3
@@ -123,7 +124,7 @@ for h in halos_this_step.index:
     print('\n particles selected in a covering region')
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
-     
+    
     
 
     posd_focus = region.shift_origin(posd_select)
@@ -163,7 +164,9 @@ for h in halos_this_step.index:
     print('\n density assignment is done')
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
-     
+
+    # pdb.set_trace()
+    # print('start debug') 
 
     grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=0.25)
 

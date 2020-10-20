@@ -66,7 +66,12 @@ halos_select.to_csv(filepath)
 while i>0:
     i -= 1
     treefile = os.path.join(treesdir, 'out_{0:d}.trees'.format(i))
-    print(treefile)
+    if not os.path.exists(treefile):
+        print('leaf reached')
+        break
+    else:
+        print(treefile)
+    
     halos = pd.read_csv(treefile, sep=r'\s+', header=0, skiprows=list(range(1,58)), index_col='Depth_first_ID(28)', engine='c')#usecols = [0,1,2])
     halos = halos[halos['pid(5)']==-1]
 
