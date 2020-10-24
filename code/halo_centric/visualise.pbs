@@ -5,4 +5,4 @@
 #PBS -m abe
 #PBS -M premv@iucaa.in
 cd /mnt/home/student/cprem/project-alpha-peak/code/halo_centric/
-printf "2e11 \n3e12 \n1e14" | parallel -j 3 "python visualise.py --max_halos 500 --M_around {} --simname bdm_zs1e5f0.51024 --align --tree_root 199"
+printf "2e11 \n3e12 \n1e14" | parallel -j 3 "python visualise.py --max_halos 500 --M_around {} --simname bdm_cdm1024 --align"
