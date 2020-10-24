@@ -74,15 +74,17 @@ with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.fo
 
 box_size = metadict['L_cube']
 
+M_vir_median = halos_root['mvir(10)'].median()
+M_vir_range = ( halos_root['mvir(10)'].min(), halos_root['mvir(10)'].max() )
 
 
 delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(i, args.downsample, args.M_around,args.max_halos)) )
 
 
-fig1, ax1 = plt.subplots(figsize=(9,7), dpi=150)
+fig1, ax1 = plt.subplots(figsize=(11,9), dpi=150)
 
 
-fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,args.simname,grid_size,scheme))
+fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}\n Halos selected by mass at redshift 0 in [{6:.2e},{7:.2e}] {8:s} with median {5:.2e} {8:s}".format(i,snap.redshift,args.simname,grid_size,scheme, M_vir_median, *M_vir_range, r'$h^{-1}M_{\odot}$'))
 
 im1 = ax1.imshow(delta_slice+1+1e-5, extent=[-box_size/2,box_size/2,-box_size/2,box_size/2], cmap='nipy_spectral', norm=LogNorm(vmin=3e-1))
 cb1 = fig1.colorbar(im1,ax=ax1)
@@ -126,7 +128,7 @@ def update(i):
 
     with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
         snap=pickle.load(infofile)
-    fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,args.simname,grid_size,scheme))
+    fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}\n Halos selected by mass at redshift 0 in [{6:.2e},{7:.2e}] {8:s} with median {5:.2e} {8:s}".format(i,snap.redshift,args.simname,grid_size,scheme, M_vir_median, *M_vir_range, r'$h^{-1}M_{\odot}$'))
     print(i,'stopping')
 
 
