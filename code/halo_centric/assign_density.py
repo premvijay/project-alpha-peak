@@ -103,6 +103,8 @@ L_cube = 10 * R_vir_root
 R_sphere_focus = np.sqrt(3)/2 * L_cube * (1+1e-2)
 L_cube_focus = np.sqrt(3) * L_cube * (1+1e-2)
 
+slice_thickness = 4*R_vir_root
+
 delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
 mean_dens = posd.shape[0]/ (args.grid_size * snap.box_size / L_cube)**3
 
@@ -168,7 +170,7 @@ for h in halos_this_step.index:
     # pdb.set_trace()
     # print('start debug') 
 
-    grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=0.25)
+    grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=slice_thickness)
 
     delta2D *= j
     delta2D += (grid2D / mean_dens) - 1
@@ -187,7 +189,7 @@ for h in halos_this_step.index:
         os.makedirs(slicedir, exist_ok=True)
         np.save(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(args.snap_i, args.downsample, args.M_around,args.max_halos) ), delta2D)
         with open(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(args.snap_i, args.downsample, args.M_around,args.max_halos)), 'w') as metafile:
-            dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root}
+            dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
             json.dump(dict,metafile, indent=True)
             # file.write(i)
     t7 = time()
