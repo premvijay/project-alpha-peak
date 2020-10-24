@@ -10,6 +10,8 @@ import pdb
 
 from gadget_tools import Snapshot
 
+plt.style.use('dark_background')
+
 parser = argparse.ArgumentParser(
     description='Density field evolution from Gadget simulation.',
     usage= 'python ./visualize_simulation.py')
@@ -73,6 +75,7 @@ with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.fo
     metadict = json.load(metafile)
 
 box_size = metadict['L_cube']
+slice_thickness = metadict['slice_thickness']
 
 M_vir_median = halos_root['mvir(10)'].median()
 M_vir_range = ( halos_root['mvir(10)'].min(), halos_root['mvir(10)'].max() )
@@ -89,7 +92,7 @@ fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid
 im1 = ax1.imshow(delta_slice+1+1e-5, extent=[-box_size/2,box_size/2,-box_size/2,box_size/2], cmap='nipy_spectral', norm=LogNorm(vmin=3e-1))
 cb1 = fig1.colorbar(im1,ax=ax1)
 cb1.set_label(r"$(1+\delta)$")
-ax1.set_title(r"0.25 $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
+ax1.set_title('{:.3f}'.format(slice_thickness)+r" $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
 ax1.set_xlabel(r"$h^{-1}$Mpc")
 ax1.set_ylabel(r"$h^{-1}$Mpc")
 
@@ -124,7 +127,7 @@ def update(i):
     r_vir_circ.set_radius(metadict['R_vir'])
     r_vir_sc_circ.set_radius(R_vir_sc)
 
-    ax1.set_title(r"0.25 $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
+    ax1.set_title('{:.3f}'.format(slice_thickness)+r" $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
 
     with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
         snap=pickle.load(infofile)
