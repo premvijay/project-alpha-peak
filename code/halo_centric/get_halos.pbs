@@ -1,13 +1,13 @@
 #!/bin/bash
-#PBS -l walltime=02:00:00
-#PBS -l select=1:ncpus=16:mem=50GB
+#PBS -l walltime=10:00:00
+#PBS -l select=1:ncpus=4:mem=50GB
 #PBS -N get_halo_list
 #PBS -m abe
 #PBS -M premv@iucaa.in
-cd /mnt/home/student/cprem/project-alpha-peak/code/halo_centric/
+cd $PBS_O_WORKDIR
 ###for Mass in 2e11 3e12 1e14
 ###do
 ###    echo Mass &
 ###    python get_halo_list.py --M_around Mass --max_halos 500 &
 ###done
-printf "2e11 \n3e12 \n1e14" | parallel -j 3 "python get_halo_list.py --simname bdm_zs1e5f0.51024 --M_around {} --max_halos 500"
+parallel -j 2 "python get_halo_list.py --simname {1} --M_around {2} --max_halos 1000" ::: bdm_cdm1024 bdm_zs1e5f0.51024 ::: 2e11 3e12 1e14 

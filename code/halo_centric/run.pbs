@@ -1,7 +1,7 @@
 #!/bin/bash
-#PBS -l walltime=3:00:00
-#PBS -l select=8:ncpus=25:mem=375GB
-#PBS -N normal_halo_env_history
+#PBS -l walltime=20:00:00
+#PBS -l select=10:ncpus=24:mem=375GB
+#PBS -N halo_env_history
 #PBS -m abe
 #PBS -M premv@iucaa.in
 ### Start
@@ -9,5 +9,5 @@ cd $PBS_O_WORKDIR
 echo Hello > hello.txt
 bash ../library/pm_tools/compile_module.sh
 echo 'C++ code has been recompiled'
-seq 1 1 199 | parallel --sshloginfile $PBS_NODEFILE -j 25 "cd $PBS_O_WORKDIR && python ./assign_density.py --simdir /scratch/aseem/sims/ --simname bdm_cdm1024 --rundir r1 --snap_i {} --M_around 3e12 --max_halos 500 --downsample 8 --align --scheme TSC --grid_size 512 --slice2D --outdir /scratch/cprem/sims/ | tee -a out_file1.txt"
+parallel --sshloginfile $PBS_NODEFILE -j 24 "cd $PBS_O_WORKDIR && python ./assign_density.py --simdir /scratch/aseem/sims/ --simname bdm_cdm1024 --rundir r1 --snap_i {3} --M_around {1} --max_halos 500 --downsample 8 {2} --scheme TSC --grid_size 512 --slice2D --outdir /scratch/cprem/sims/ | tee -a out_file1.txt" ::: 2e11 3e12 1e14 ::: '--align' ' ' ::: `seq 1 1 200`
 
