@@ -5,6 +5,7 @@ import os
 import copy
 import argparse
 import pdb
+from time import time
 
 parser = argparse.ArgumentParser(description='Find most massive in a given tree.',
  usage= 'python')
@@ -51,10 +52,23 @@ halos = halos[halos['pid(5)']==-1]
 
 
 # for M_around in args.M_around_list:
+t_now = time()
+
+# def logbin(val, cen=args.M_around):
+#     return np.fabs(np.log10(val) - np.log10(cen))
+
+# halos_select = halos.sort_values('mvir(10)', key=logbin).iloc[:args.max_halos]
 
 halos['diff_bin'] = np.fabs(np.log10(halos['mvir(10)']) - np.log10(args.M_around))
 
 halos_select = halos.sort_values('diff_bin').iloc[:args.max_halos]
+
+halos_select.drop('diff_bin', axis=1, inplace=True) 
+
+t_bef, t_now = t_now, time()
+print('total time for selecting root halos', t_now-t_bef)
+
+halos_select['Snap_num(31)'] = int(i)
 
 # pdb.set_trace()
 
@@ -63,7 +77,7 @@ halos_select = halos.sort_values('diff_bin').iloc[:args.max_halos]
 filepath = os.path.join(outdir,'halos_select_{0:.1e}_{1:d}.csv'.format(args.M_around,args.max_halos))
 halos_select.to_csv(filepath)
 
-while i>0:
+while i>1:
     i -= 1
     treefile = os.path.join(treesdir, 'out_{0:d}.trees'.format(i))
     if not os.path.exists(treefile):
@@ -86,6 +100,9 @@ while i>0:
 
     halos_select = halos.loc[halos_to_select]
 
+    halos_select['Snap_num(31)'] = int(i)
+    halos_select.to_csv(filepath, mode='a', header=False)
+
     # pdb.set_trace()
 
     # for Depth_ID in halos_to_look:
@@ -98,11 +115,5 @@ while i>0:
     #         pass
 
     # filepath = os.path.join(outdir,'halos_select_{0:03d}'.format(i))
-    halos_select.to_csv(filepath, mode='a', header=False)
     
-
-
-
-
-
 
