@@ -30,6 +30,8 @@ parser.add_argument('--max_halos', type=int, default=500)
 parser.add_argument('--align', action='store_true', help='Visualize aligned and then stacked images')
 
 parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims')
+parser.add_argument('--plots_into', type=str, default='/mnt/home/student/cprem/project-alpha-peak/notes_and_results')
+
 
 args = parser.parse_args()
 
@@ -41,16 +43,16 @@ scheme = 'TSC'
 
 savesdir_global = os.path.join(args.outdir, args.simname, args.rundir, 'TSC', '512')
 
-savesdir = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', scheme, '{0:d}'.format(grid_size))
+savesdir = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', scheme, f'{grid_size:d}')
 
 print(savesdir)
 
-halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list',
-'halos_select_{0:.1e}_{1:d}.csv'.format(args.M_around,args.max_halos))
+halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{args.M_around:.1e}_{args.max_halos:d}.csv')
 
 slicedir = os.path.join(savesdir,'slice2D')
 infodir = os.path.join(savesdir_global,'info')
-plotsdir = os.path.join(savesdir, 'plots_and_anims')
+
+plotsdir = os.path.join(args.plots_into, 'plots_and_anims', f'{args.simname:s}_{args.rundir:s}', f'halo_centric_{scheme:s}_{grid_size:d}')
 os.makedirs(plotsdir, exist_ok=True)
 
 align_str = ''
@@ -66,12 +68,12 @@ i = 150
 halos_this_step = halos[halos['Snap_num(31)']==i]
 
 
-with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
+with open(os.path.join(infodir, f'header_{i:03d}.p'), 'rb') as infofile:
     snap=pickle.load(infofile)
 
 mean_dens_comoving = np.dot(snap.mass_table*1e10, snap.N_prtcl_total) / snap.box_size**3
 
-with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(i, args.downsample, args.M_around,args.max_halos)), 'rt' ) as metafile:
+with open( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.meta'), 'rt' ) as metafile:
     metadict = json.load(metafile)
 
 box_size = metadict['L_cube']
@@ -81,18 +83,19 @@ M_vir_median = halos_root['mvir(10)'].median()
 M_vir_range = ( halos_root['mvir(10)'].min(), halos_root['mvir(10)'].max() )
 
 
-delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(i, args.downsample, args.M_around,args.max_halos)) )
+delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
 
 
 fig1, ax1 = plt.subplots(figsize=(11,9), dpi=150)
 
+mass_unit = r'$h^{-1}M_{\odot}$'
 
-fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}\n Halos selected by mass at redshift 0 in [{6:.2e},{7:.2e}] {8:s} with median {5:.2e} {8:s}".format(i,snap.redshift,args.simname,grid_size,scheme, M_vir_median, *M_vir_range, r'$h^{-1}M_{\odot}$'))
+fig1.suptitle(f"Snapshot-{i:03d} at redshift z={snap.redshift:.4f};     Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme}\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
 
 im1 = ax1.imshow(delta_slice+1+1e-5, extent=[-box_size/2,box_size/2,-box_size/2,box_size/2], cmap='nipy_spectral', norm=LogNorm(vmin=3e-1))
 cb1 = fig1.colorbar(im1,ax=ax1)
 cb1.set_label(r"$(1+\delta)$")
-ax1.set_title('{:.3f}'.format(slice_thickness)+r" $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
+ax1.set_title(f"{slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
 ax1.set_xlabel(r"$h^{-1}$Mpc")
 ax1.set_ylabel(r"$h^{-1}$Mpc")
 
@@ -111,14 +114,14 @@ plt.legend()
 
 
 
-fig1.savefig(os.path.join(plotsdir, 'single_snapshot{4}_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.pdf'.format(i, args.downsample, args.M_around,args.max_halos, align_str)), bbox_inchex='tight')
+fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.pdf'), bbox_inchex='tight')
 
 def update(i):
     print(i, 'starting')
-    delta_slice = np.load( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(i, args.downsample, args.M_around,args.max_halos)) )
+    delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
     im1.set_data(delta_slice+1+1e-5)
     
-    with open( os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(i, args.downsample, args.M_around,args.max_halos)), 'rt' ) as metafile:
+    with open( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.meta'), 'rt' ) as metafile:
         metadict = json.load(metafile)
     halos_this_step = halos[halos['Snap_num(31)']==i]
     M_vir = halos_this_step['mvir(10)'].mean()
@@ -127,11 +130,11 @@ def update(i):
     r_vir_circ.set_radius(metadict['R_vir'])
     r_vir_sc_circ.set_radius(R_vir_sc)
 
-    ax1.set_title('{:.3f}'.format(slice_thickness)+r" $h^{-1}$ Mpc thick slice in halo centric stack of "+'{}'.format(metadict['N_stack']))
+    ax1.set_title(f"{slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
 
-    with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
+    with open(os.path.join(infodir, f'header_{i:03d}.p'), 'rb') as infofile:
         snap=pickle.load(infofile)
-    fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}\n Halos selected by mass at redshift 0 in [{6:.2e},{7:.2e}] {8:s} with median {5:.2e} {8:s}".format(i,snap.redshift,args.simname,grid_size,scheme, M_vir_median, *M_vir_range, r'$h^{-1}M_{\odot}$'))
+    fig1.suptitle(f"Snapshot-{i:03d} at redshift z={snap.redshift:.4f};     Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme}\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
     print(i,'stopping')
 
 
@@ -143,5 +146,5 @@ anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(6,args.tree
 Writer=matplotlib.animation.FFMpegWriter
 writer = Writer(fps=10)
 
-anim.save(os.path.join(plotsdir, 'simulation_visualisation{3}_1by{0:d}_{1:.1e}_{2:d}.mp4'.format(args.downsample, args.M_around,args.max_halos, align_str)), writer=writer, dpi=150)
+anim.save(os.path.join(plotsdir, f'simulation_visualisation{align_str}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.mp4'), writer=writer, dpi=100)
 print("saved")
