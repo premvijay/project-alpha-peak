@@ -10,24 +10,30 @@ import pdb
 
 from gadget_tools import Snapshot
 
+plt.style.use('dark_background')
+
 parser = argparse.ArgumentParser(
     description='Density field evolution from Gadget simulation.',
     usage= 'python ./visualize_simulation.py')
 
 parser.add_argument('--simname', type=str, default='bdm_cdm1024', help='Directory name containing the saved data')
+parser.add_argument('--rundir', type=str, default='r1',
+                help='Directory name containing the snapshot binaries')
+
+parser.add_argument('--plots_into', type=str, default='/mnt/home/student/cprem/project-alpha-peak/notes_and_results/plots_and_anims')
 
 args = parser.parse_args()
 
 grid_size = 512
 scheme = 'TSC'
-rundir = 'r1'
+# rundir = 'r1'
 interlaced = True
 
 inlcd_str = '_interlaced' if interlaced==True else ''
 
 # simname = 'bdm_cdm1024' if args.simname is None else args.simname
 
-savesdir = os.path.join('/scratch/cprem/sims', args.simname, rundir, scheme, '{0:d}'.format(grid_size))
+savesdir = os.path.join('/scratch/cprem/sims', args.simname, args.rundir, scheme, '{0:d}'.format(grid_size))
 
 print(savesdir)
 
@@ -36,6 +42,9 @@ slicedir = os.path.join(savesdir,'slice2D')
 Pkdir = os.path.join(savesdir,'power_spectrum')
 infodir = os.path.join(savesdir,'info')
 plotsdir = os.path.join(savesdir, 'plots_and_anims')
+os.makedirs(plotsdir, exist_ok=True)
+
+plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{args.rundir:s}', f'full_box_{scheme:s}_{grid_size:d}')
 os.makedirs(plotsdir, exist_ok=True)
 
 i = 150
@@ -85,9 +94,11 @@ ax2.grid(True)
 ax2.set_title("Power spectrum")
 
 
+plt.tight_layout()
 
-
-fig1.savefig(os.path.join(plotsdir, 'single_snapshot.pdf'), bbox_inchex='tight')
+fig1.savefig(os.path.join(plotsdir, 'single_snapshot.pdf'))
+fig1.savefig(os.path.join(plotsdir, 'single_snapshot.png'))
+fig1.savefig(os.path.join(plotsdir, 'single_snapshot.svg'))
 
 def update(i):
     print(i, 'starting')
