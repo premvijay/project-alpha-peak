@@ -30,7 +30,7 @@ parser.add_argument('--max_halos', type=int, default=500)
 parser.add_argument('--align', action='store_true', help='Visualize aligned and then stacked images')
 
 parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims')
-parser.add_argument('--plots_into', type=str, default='/mnt/home/student/cprem/project-alpha-peak/notes_and_results')
+parser.add_argument('--plots_into', type=str, default='/mnt/home/student/cprem/project-alpha-peak/notes_and_results/plots_and_anims')
 
 
 args = parser.parse_args()
@@ -52,13 +52,21 @@ halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric',
 slicedir = os.path.join(savesdir,'slice2D')
 infodir = os.path.join(savesdir_global,'info')
 
-plotsdir = os.path.join(args.plots_into, 'plots_and_anims', f'{args.simname:s}_{args.rundir:s}', f'halo_centric_{scheme:s}_{grid_size:d}')
+plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{args.rundir:s}', f'halo_centric_{scheme:s}_{grid_size:d}')
 os.makedirs(plotsdir, exist_ok=True)
 
 align_str = ''
 if not args.align:
     slicedir = os.path.join(slicedir, 'unaligned')
     align_str += '_unaligned'
+
+def Omega(z, Om0):
+    E = Om0 * (1+z)**3 + (1-Om0)
+    return Om0 * (1+z)**3 / E
+
+def Del_vir(Om):
+    x = Om - 1
+    return 18*np.pi**2 + 82*x - 39*x**2
 
 halos = pd.read_csv(halosfile, engine='c', index_col='id(1)')
 halos_root = halos[halos['Snap_num(31)']==args.tree_root]
@@ -83,6 +91,9 @@ M_vir_median = halos_root['mvir(10)'].median()
 M_vir_range = ( halos_root['mvir(10)'].min(), halos_root['mvir(10)'].max() )
 
 
+# Omega = lambda z : Omega(z, snap.Omega_m_0)
+
+
 delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
 
 
@@ -104,7 +115,7 @@ ax1.add_patch(r_vir_circ)
 
 # M_vir = args.M_around 
 M_vir = halos_this_step['mvir(10)'].mean()
-R_vir_sc = ( M_vir / (4/3 * np.pi * 178 * mean_dens_comoving) )**(1/3)
+R_vir_sc = ( M_vir / (4/3 * np.pi * Del_vir(Omega(snap.redshift, snap.Omega_m_0)) * mean_dens_comoving) )**(1/3)
 r_vir_sc_circ = plt.Circle((0,0),radius=R_vir_sc, fill=False, ls='--', label='virial radius from spherical collapse')
 ax1.add_patch(r_vir_sc_circ)
 
@@ -112,9 +123,11 @@ plt.legend()
 # ax1.set_xscale('log')
 
 
+plt.tight_layout()
 
-
-fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.pdf'), bbox_inchex='tight')
+fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.pdf'))
+fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.png'))
+fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.svg'))
 
 def update(i):
     print(i, 'starting')
@@ -123,17 +136,19 @@ def update(i):
     
     with open( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.meta'), 'rt' ) as metafile:
         metadict = json.load(metafile)
+    with open(os.path.join(infodir, f'header_{i:03d}.p'), 'rb') as infofile:
+        snap=pickle.load(infofile)
+
     halos_this_step = halos[halos['Snap_num(31)']==i]
     M_vir = halos_this_step['mvir(10)'].mean()
-    R_vir_sc = ( M_vir / (4/3 * np.pi * 178 * mean_dens_comoving) )**(1/3)
+    R_vir_sc = ( M_vir / (4/3 * np.pi * Del_vir(Omega(snap.redshift, snap.Omega_m_0)) * mean_dens_comoving) )**(1/3)
 
     r_vir_circ.set_radius(metadict['R_vir'])
     r_vir_sc_circ.set_radius(R_vir_sc)
 
     ax1.set_title(f"{slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
 
-    with open(os.path.join(infodir, f'header_{i:03d}.p'), 'rb') as infofile:
-        snap=pickle.load(infofile)
+    
     fig1.suptitle(f"Snapshot-{i:03d} at redshift z={snap.redshift:.4f};     Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme}\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
     print(i,'stopping')
 
