@@ -5,5 +5,5 @@
 #PBS -m abe
 #PBS -M premv@iucaa.in
 cd $PBS_O_WORKDIR
-### parallel -j 3 "python visualise.py --max_halos 1000 --M_around {1} --simname bdm_cdm1024" :::  2e11 3e12 1e14
+parallel -j 3 "python visualise.py --max_halos 1000 --M_around {1} --simname bdm_cdm1024" :::  2e11 3e12 1e14   &
 parallel -j 3 "python visualise.py --max_halos 1000 --M_around {1} --simname bdm_cdm1024 --align" :::  2e11 3e12 1e14
