@@ -5,11 +5,12 @@ class Snapshot():
         print("Instantiated a snapshot object, use 'from_binary' method to read from binary.")
         if hdf5_support:
             import h5py
+            self.h5py = h5py
 
     def from_binary(self, filename = None, header=True):
         assert type(filename) is str, "This class requires the gadget filename as input"
         self.filename = filename
-        self.filetype = 'gadget_binary' if self.filename[-6:]!='.hdf5' else 'gadget_hdf5'
+        self.filetype = 'gadget_binary' if self.filename[-5:]!='.hdf5' else 'gadget_hdf5'
         if header==True:
             self.read_header()
         else:
@@ -43,7 +44,7 @@ class Snapshot():
             self.prtcl_types = ["Gas","Halo","Disk",  "Bulge", "Stars", "Bndry"]
         
         elif self.filetype == 'gadget_hdf5':
-            h5file = h5py.File(self.filename, 'r')
+            h5file = self.h5py.File(self.filename, 'r')
             self.N_prtcl_thisfile = h5file['Header'].attrs['NumPart_ThisFile']    ## The number of particles of each type present in the file
             self.mass_table       = h5file['Header'].attrs['MassTable']     ## Gives the mass of different particles
             self.scale_factor     = h5file['Header'].attrs['Time']   ##Time of output,  or expansion factor for cosmological simulations
@@ -75,10 +76,10 @@ class Snapshot():
             return posd
 
         elif self.filetype == 'gadget_hdf5':
-            h5file = h5py.File(self.filename, 'r')
+            h5file = self.h5py.File(self.filename, 'r')
             if prtcl_type=="Halo": 
                 type_num = 1
-            return h5file['PartType{type_num:d}']['Coordinates'][:]
+            return h5file[f'PartType{type_num:d}']['Coordinates'][:]
 
 
 
