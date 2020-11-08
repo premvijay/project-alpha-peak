@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import matplotlib.animation
+from matplotlib import patches as mpatches
+from matplotlib.offsetbox import AnchoredText
 import pandas as pd
 import argparse
 import pdb
@@ -27,7 +29,7 @@ parser.add_argument('--tree_root', type=int, default=200)
 parser.add_argument('--M_around', type=float, default=3e12)
 parser.add_argument('--max_halos', type=int, default=500)
 
-parser.add_argument('--align', action='store_true', help='Visualize aligned and then stacked images')
+parser.add_argument('--align', type=int, default=1, help='Visualize aligned and then stacked images')
 
 parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims')
 parser.add_argument('--plots_into', type=str, default='/mnt/home/student/cprem/project-alpha-peak/notes_and_results/plots_and_anims')
@@ -66,7 +68,7 @@ def Omega(z, Om0):
 
 def Del_vir(Om):
     x = Om - 1
-    return 18*np.pi**2 + 82*x - 39*x**2
+    return (18*np.pi**2 + 82*x - 39*x**2)/Om
 
 halos = pd.read_csv(halosfile, engine='c', index_col='id(1)')
 halos_root = halos[halos['Snap_num(31)']==args.tree_root]
@@ -97,7 +99,7 @@ M_vir_range = ( halos_root['mvir(10)'].min(), halos_root['mvir(10)'].max() )
 delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
 
 
-fig1, ax1 = plt.subplots(figsize=(11,9), dpi=150)
+fig1, ax1 = plt.subplots(figsize=(9,7.5))#, dpi=120)
 
 mass_unit = r'$h^{-1}M_{\odot}$'
 
@@ -106,12 +108,29 @@ fig1.suptitle(f"Snapshot-{i:03d} at redshift z={snap.redshift:.4f};     Simulati
 im1 = ax1.imshow(delta_slice+1+1e-5, extent=[-box_size/2,box_size/2,-box_size/2,box_size/2], cmap='nipy_spectral', norm=LogNorm(vmin=3e-1))
 cb1 = fig1.colorbar(im1,ax=ax1)
 cb1.set_label(r"$(1+\delta)$")
-ax1.set_title(f"{slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
+# ax1.set_title(f"{slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
+ax1.set_title(r'$4 ~R_{\rm{vir}}(z=0)$' + f" = {slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
 ax1.set_xlabel(r"$h^{-1}$Mpc")
 ax1.set_ylabel(r"$h^{-1}$Mpc")
 
-r_vir_circ = plt.Circle((0,0),radius=metadict['R_vir'], fill=False, label='virial radius from simulation')
+# these are matplotlib.patch.Patch properties
+# props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+# place a text box in upper left in axes coords
+# ax1.text(0.05, 0.5, r'$4 ~R_{\rm{vir}}(z=0)$' + f" = {metadict['R_vir_root']:.3f} {r'$h^{-1}$':s} Mpc", transform=ax1.transAxes, fontsize=14, verticalalignment='top', bbox=props)
+
+at = AnchoredText(r'$R_{\rm{vir}}(z=0)$' + f" = {metadict['R_vir_root']:.3f} {r'$h^{-1}$':s} Mpc", loc='upper left', prop=dict(backgroundcolor='purple', alpha=1, color='yellow',size=12), frameon=True)
+at.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+ax1.add_artist(at)
+
+
+# Make circle of virial radius from catalogue
+r_vir_circ = mpatches.Circle((0,0),radius=metadict['R_vir'], fill=False, label='virial radius from halo catalogue')
 ax1.add_patch(r_vir_circ)
+
+axisratio_2_1 = (halos_this_step['b_to_a(43)'].mean() * halos_this_step['c_to_a(44)'].mean() )**(1/2)
+#(halos_this_step['b_to_a(43)'].mean()**2 + halos_this_step['c_to_a(44)'].mean()**2 )**(1/2)
+r_vir_ell = mpatches.Ellipse((0,0), height=metadict['R_vir']*2, width=metadict['R_vir']*2*axisratio_2_1, fill=False, label='virial boandary based on halo catalogue')
+ax1.add_patch(r_vir_ell)
 
 # M_vir = args.M_around 
 M_vir = halos_this_step['mvir(10)'].mean()
@@ -143,10 +162,14 @@ def update(i):
     M_vir = halos_this_step['mvir(10)'].mean()
     R_vir_sc = ( M_vir / (4/3 * np.pi * Del_vir(Omega(snap.redshift, snap.Omega_m_0)) * mean_dens_comoving) )**(1/3)
 
+    axisratio_2_1 = (halos_this_step['b_to_a(43)'].mean() * halos_this_step['c_to_a(44)'].mean() )**(1/2)
+
     r_vir_circ.set_radius(metadict['R_vir'])
+    r_vir_ell.set_height(metadict['R_vir']*2)
+    r_vir_ell.set_width(metadict['R_vir']*2*axisratio_2_1)
     r_vir_sc_circ.set_radius(R_vir_sc)
 
-    ax1.set_title(f"{slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
+    ax1.set_title(r'$4 ~R_{\rm{vir}}(z=0)$' + f" = {slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
 
     
     fig1.suptitle(f"Snapshot-{i:03d} at redshift z={snap.redshift:.4f};     Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme}\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
