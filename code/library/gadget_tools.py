@@ -81,13 +81,38 @@ class Snapshot():
                 type_num = 1
             return h5file[f'PartType{type_num:d}']['Coordinates'][:]
 
+    def velocities(self, prtcl_type="Halo",max_prtcl=None):
+        if self.filetype == 'gadget_binary':
+            file = open(self.filename,'rb')
+            file.seek(256+8+8 + self.N_prtcl_thisfile.sum()*3*4, 0)
+            velocity_block_size = np.fromfile(file, dtype = np.int32, count =1)[0]
+            print ("reading the third block (position) which contains ", velocity_block_size, " bytes")
+            i = 0
+            while self.prtcl_types[i] != prtcl_type:
+                file.seek(self.N_prtcl_thisfile[i]*3*4, 1)
+                i += 1
+            N_prtcl = self.N_prtcl_thisfile[i] if max_prtcl is None else max_prtcl
+            veld = np.fromfile(file, dtype = np.float32, count = N_prtcl*3)  ### The velocities are arranged in the binary file as follow: vx1,vy1,vz1,vx2,vy2,vz2,vx3,vy3,vz3 and so on till vxn,vyn,vzn
+            veld = posd.reshape((N_prtcl, 3))   ## reshape keeps the fastest changing axis in the end, since vx,vy,vz dimensions are the ones changing the fastest they are given the last axis.
+            if max_prtcl is not None:
+                print('velocities of {} particles is read'.format(N_prtcl))
+            else:
+                end  = np.fromfile(file, dtype = np.int32, count =1)[0]
+                print ('velocity block is read and it contains ', end, 'bytes')
+            return veld
+
+        elif self.filetype == 'gadget_hdf5':
+            h5file = self.h5py.File(self.filename, 'r')
+            if prtcl_type=="Halo": 
+                type_num = 1
+            return h5file[f'PartType{type_num:d}']['Velocities'][:]
 
 
 
 
-
-def read_positions_all_files(snapshot_filepath_prefix,downsample=1):
+def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10):
     pos_list = []
+    np.random.seed(rand_seed)
 
     file_number = 0
     while True:
@@ -118,9 +143,94 @@ def read_positions_all_files(snapshot_filepath_prefix,downsample=1):
     return posd
 
 
+def read_velocities_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10):
+    vel_list = []
+    np.random.seed(rand_seed)
+
+    file_number = 0
+    while True:
+        filename_suffix = '.{0:d}'.format(file_number)
+        # filepath = os.path.join(binary_files_dir, filename)
+        filepath = snapshot_filepath_prefix + filename_suffix
+        print(filepath)
+
+        snap = Snapshot()
+        snap.from_binary(filepath)
+
+        veld_thisfile = snap.velocities(prtcl_type="Halo", max_prtcl=None)
+        if downsample != 1:
+            rand_ind = np.random.choice(veld_thisfile.shape[0], size=veld_thisfile.shape[0]//downsample, replace=False)
+            # print(snap.N_prtcl_thisfile, downsample, 'n', snap.N_prtcl_thisfile//downsample, rand_ind)
+            veld_thisfile = veld_thisfile[rand_ind]
+
+
+        vel_list.append(veld_thisfile)
+        if file_number == snap.num_files-1:
+            break
+        else:
+            file_number += 1
+
+    veld = np.vstack(vel_list)
+    # del vel_list[:]
+
+    return veld
 
 
 
+## To do for RAM limited situations
+# def read_snapshot_all_files(snapshot_filepath_prefix, get_pos=True, get_vel=True, downsample=1):
+#     file_number = 0
+#     filename_suffix = '.{0:d}'.format(file_number)
+#     filepath = snapshot_filepath_prefix + filename_suffix
+#     print(filepath)
+
+#     snap = Snapshot()
+#     snap.from_binary(filepath)
+
+    
+#     if get_pos:
+#         posd = np.zeros(shape=(self.N_prtcl_total,3))
+#     if get_vel:
+#         veld = np.zeros(shape=(self.N_prtcl_total,3))
+    
+#     for file_number in range(snap.num_files):
+#         filename_suffix = '.{0:d}'.format(file_number)
+#         filepath = snapshot_filepath_prefix + filename_suffix
+#         print(filepath)
+
+#         snap = Snapshot()
+#         snap.from_binary(filepath)
+
+#         posd = snap.velocities(prtcl_type="Halo", max_prtcl=None)
+
+#     while True:
+#         filename_suffix = '.{0:d}'.format(file_number)
+#         filepath = snapshot_filepath_prefix + filename_suffix
+#         print(filepath)
+
+#         snap = Snapshot()
+#         snap.from_binary(filepath)
+
+#         posd_thisfile = snap.velocities(prtcl_type="Halo", max_prtcl=None)
+#         if downsample != 1:
+#             rand_ind = np.random.choice(posd_thisfile.shape[0], size=posd_thisfile.shape[0]//downsample, replace=False)
+#             # print(snap.N_prtcl_thisfile, downsample, 'n', snap.N_prtcl_thisfile//downsample, rand_ind)
+#             posd_thisfile = posd_thisfile[rand_ind]
+
+
+#         pos_list.append(posd_thisfile)
+#         if file_number == snap.num_files-1:
+#             break
+#         else:
+#             file_number += 1
+
+#     posd = np.vstack(pos_list)
+#     # del pos_list[:]
+
+#     return posd
+
+
+# def downsample()
 
 
 
