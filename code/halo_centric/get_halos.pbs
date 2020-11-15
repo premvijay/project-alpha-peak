@@ -10,4 +10,4 @@ cd $PBS_O_WORKDIR
 ###    echo Mass &
 ###    python get_halo_list.py --M_around Mass --max_halos 500 &
 ###done
-parallel -j 2 "python get_halo_list.py --simname {1} --M_around {2} --max_halos 1000" ::: bdm_cdm1024 bdm_zs1e5f0.51024 ::: 2e11 3e12 1e14 
+parallel -j 6 "python get_halo_list.py --simname {1} --M_around {2} --max_halos 1000" ::: bdm_cdm1024 bdm_zs1e5f0.51024 ::: 2e11 3e12 1e14 
