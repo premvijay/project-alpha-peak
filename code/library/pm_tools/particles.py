@@ -59,7 +59,8 @@ class SphereRegion:
     
     def selectPrtcl(self, posd, shift_origin=False):
         diff = np.fabs(posd-self.cen)
-        return posd[np.linalg.norm(np.minimum(diff, self.box_size-diff), axis=1) <= self.rad]
+        select_index = (np.linalg.norm(np.minimum(diff, self.box_size-diff), axis=1) <= self.rad).nonzero()
+        return select_index
 
     def shift_origin(self, posd_select):
         return Transform.shift_origin_wrap(posd_select, self.cen, self.rad*1.5, self.box_size)
@@ -75,7 +76,8 @@ class CubeRegion:
     
     def selectPrtcl(self, posd, shift_origin=False):
         diff = np.fabs(posd-self.cen)
-        return posd[( np.minimum(diff, self.box_size-diff) < self.side/2 ).all(axis=1)]
+        select_index = (np.minimum(diff, self.box_size-diff) < self.side/2 ).all(axis=1).nonzero()
+        return select_index
 
     def shift_origin(self, posd_select):
         return Transform.shift_origin_wrap(posd_select, self.cen, self.side, self.box_size)
