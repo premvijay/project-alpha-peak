@@ -9,5 +9,5 @@ cd $PBS_O_WORKDIR
 echo Hello > hello.txt
 bash ../library/pm_tools/compile_module.sh
 echo 'C++ code has been recompiled'
-parallel --sshloginfile $PBS_NODEFILE -j 25 "cd $PBS_O_WORKDIR && python ./assign_density.py --simdir /scratch/aseem/sims/ --simname bdm_cdm1024 --rundir r1 --snap_i {2} --M_around {1} --max_halos 1000 --downsample 8 --scheme TSC --grid_size 512 --slice2D --outdir /scratch/cprem/sims/ | tee -a out_file1.txt" ::: 2e11 3e12 1e14 ::: `seq 1 1 200`
+parallel --sshloginfile $PBS_NODEFILE -j 25 "cd $PBS_O_WORKDIR && python ./assign_density.py --simdir /scratch/aseem/sims/ --simname bdm_cdm1024 --rundir r1 --snap_i {3} --M_around {2} --max_halos 1000 --downsample 8 --scheme TSC --grid_size 512 --slice2D --align {1} --phase_space_1D --outdir /scratch/cprem/sims/ | tee -a out_file1.txt" ::: 1 0 ::: 2e11 3e12 1e14 ::: `seq 1 1 200`
 ### '--align'

@@ -50,7 +50,7 @@ parser.add_argument('--continue', type=int, default=0, help='Continue from exist
 
 parser.add_argument('--slice2D', action='store_true', help='Compute and save 2D projected slices')
 
-parser.add_argument('--rad_vel', action='store_true', help='Compute and save 2D projected slices')
+parser.add_argument('--phase_space_1D', action='store_true', help='Compute and save 2D projected slices')
 
 parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims',
                 help='Directory to save the requested output')
@@ -129,7 +129,7 @@ if args.continue:
         print(f'\n Continuing from existing stack of {metadict['N_stack']:d}')
         t_bef, t_now = t_now, time()
         print(t_now-t_bef)
-    if args.rad_vel:
+    if args.phase_space_1D:
         h5file_phase = tables.open_file(f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5', mode='a')
         rad = h5file_phase.root.radius
         rad_vel = h5file_phase.root.radial_velocity
@@ -137,7 +137,7 @@ else:
     j = 0
     if args.slice2D:
         delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
-    if args.rad_vel:
+    if args.phase_space_1D:
         h5file_phase = tables.open_file(f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5', mode='w')
         atom = tables.Float64Atom()
         rad = h5file_phase.create_earray(h5file_phase.root, 'radius', atom, shape=(0,))
@@ -222,7 +222,7 @@ for h in halos_this_step.index:
             json.dump(dict,metafile, indent=True)
             # file.write(i)
 
-    if args.rad_vel:
+    if args.phase_space_1D:
         rad_j = np.linalg.norm(posd_shifted - L_cube/2, axis=1)
         rad_vel_j = (veld[select_index] * posd_shifted).sum(axis=1) / rad_j
         rad.append(rad_j)
@@ -241,7 +241,8 @@ for h in halos_this_step.index:
 del posd
 gc.collect()
 
-h5file_phase.close()
+if args.phase_space_1D:
+    h5file_phase.close()
 
 
 
