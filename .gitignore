@@ -5,11 +5,11 @@ code/library/density_assign/cic.exe
 code/err_file.txt
 code/out_file.txt
 code/hello.txt
-code/tmp.py
 code/global_properties/hello.txt
 code/halo_centric/tmp.py
 *.e5*
 *.o5*
-*t_file1.txt
+out_file1.txt
 trash
+tmp*.*
 notes_and_results/plots_and_anims/bdm_cdm1024_r1/accretion_rate/snap_*.svg
