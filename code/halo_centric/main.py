@@ -38,6 +38,9 @@ parser.add_argument('--tree_root', type=int, default=200)
 parser.add_argument('--M_around', type=float, default=3e12)
 parser.add_argument('--max_halos', type=int, default=500)
 
+parser.add_argument('--halos_file_suffix', type=str, default='',
+                help='halo file suffix like _1')
+
 parser.add_argument('--scheme', type=str, default='CIC',
                 help='Scheme for assigning particles to grid')
 
@@ -68,7 +71,7 @@ args = parser.parse_args()
 
 snapdir = os.path.join(args.simdir, args.simname, args.rundir)
 halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list',
-'halos_select_{0:.1e}_{1:d}.csv'.format(args.M_around,args.max_halos))
+'halos_select_{0:.1e}_{1:d}{args.halos_file_suffix:s}.csv'.format(args.M_around,args.max_halos))
 
 outdir = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', args.scheme, '{0:d}'.format(args.grid_size) )
 os.makedirs(outdir, exist_ok=True)
