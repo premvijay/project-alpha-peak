@@ -43,12 +43,16 @@ parser.add_argument('--scheme', type=str, default='CIC',
 parser.add_argument('--grid_size', type=int, default=512,
                 help='Grid size : number of cells along each direction')
 
-parser.add_argument('--align', action='store_true', help='Align and then stack')
+parser.add_argument('--align', type=int, default=1, help='Align and then stack images')
+
+parser.add_argument('--continue', type=int, default=0, help='Continue from existing stack')
 
 parser.add_argument('--slice2D', action='store_true', help='Compute and save 2D projected slices')
 
 parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims',
                 help='Directory to save the requested output')
+
+
 
 args = parser.parse_args()
 
@@ -105,14 +109,26 @@ L_cube_focus = np.sqrt(3) * L_cube * (1+1e-2)
 
 slice_thickness = 4*R_vir_root
 
-delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
 mean_dens = posd.shape[0]/ (args.grid_size * snap.box_size / L_cube)**3
 
 print('\n halos list read from the file')
 t_bef, t_now = t_now, time()
 print(t_now-t_bef)
 
-j = 0
+if args.continue:
+    with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.meta'), 'rt') as metafile:
+        metadict = json.load(metafile)
+    j = metadict['N_stack']
+    delta2D = np.load( os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
+    print(f'\n Continuing from existing stack of {metadict['N_stack']:d}')
+    t_bef, t_now = t_now, time()
+    print(t_now-t_bef)
+else:
+    j = 0
+    delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
+
+print('\n Starting with first halo')
+
 for h in halos_this_step.index:
     t1 = time()
     t_now1 = t1
@@ -187,8 +203,8 @@ for h in halos_this_step.index:
         if not args.align:
             slicedir = os.path.join(slicedir, 'unaligned')
         os.makedirs(slicedir, exist_ok=True)
-        np.save(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.npy'.format(args.snap_i, args.downsample, args.M_around,args.max_halos) ), delta2D)
-        with open(os.path.join(slicedir, 'slice_{0:03d}_1by{1:d}_{2:.1e}_{3:d}.meta'.format(args.snap_i, args.downsample, args.M_around,args.max_halos)), 'w') as metafile:
+        np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy'), delta2D)
+        with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.meta'), 'w') as metafile:
             dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
             json.dump(dict,metafile, indent=True)
             # file.write(i)
