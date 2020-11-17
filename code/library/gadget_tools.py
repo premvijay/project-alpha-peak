@@ -88,7 +88,7 @@ class Snapshot():
     def velocities(self, prtcl_type="Halo",max_prtcl=None):
         if self.filetype == 'gadget_binary':
             file = open(self.filename,'rb')
-            file.seek(256+8+8 + self.N_prtcl_thisfile.sum()*3*4, 0)
+            file.seek(256+8+8 + int(self.N_prtcl_thisfile.sum())*3*4, 0)
             velocity_block_size = np.fromfile(file, dtype = np.int32, count =1)[0]
             print ("reading the third block (position) which contains ", velocity_block_size, " bytes")
             i = 0
@@ -97,7 +97,7 @@ class Snapshot():
                 i += 1
             N_prtcl = self.N_prtcl_thisfile[i] if max_prtcl is None else max_prtcl
             veld = np.fromfile(file, dtype = np.float32, count = N_prtcl*3)  ### The velocities are arranged in the binary file as follow: vx1,vy1,vz1,vx2,vy2,vz2,vx3,vy3,vz3 and so on till vxn,vyn,vzn
-            veld = posd.reshape((N_prtcl, 3))   ## reshape keeps the fastest changing axis in the end, since vx,vy,vz dimensions are the ones changing the fastest they are given the last axis.
+            veld = veld.reshape((N_prtcl, 3))   ## reshape keeps the fastest changing axis in the end, since vx,vy,vz dimensions are the ones changing the fastest they are given the last axis.
             if max_prtcl is not None:
                 print('velocities of {} particles is read'.format(N_prtcl))
             else:
