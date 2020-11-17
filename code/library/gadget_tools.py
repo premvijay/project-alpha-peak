@@ -1,11 +1,15 @@
 import numpy as np
 
 class Snapshot():
-    def __init__(self, hdf5_support='True'):
-        print("Instantiated a snapshot object, use 'from_binary' method to read from binary.")
+    def __init__(self, snapfile=None, hdf5_support='True'):
         if hdf5_support:
             import h5py
             self.h5py = h5py
+        if snapfile is None:
+            print("Instantiated a snapshot object, use 'from_binary' method to read from binary.")
+        else:
+            self.from_binary(snapfile)
+
 
     def from_binary(self, filename = None, header=True):
         assert type(filename) is str, "This class requires the gadget filename as input"
