@@ -12,3 +12,4 @@ code/halo_centric/tmp.py
 *.o5*
 *t_file1.txt
 trash
+notes_and_results/plots_and_anims/bdm_cdm1024_r1/accretion_rate/snap_*.svg
