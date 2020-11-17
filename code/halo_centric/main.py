@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import tables
 
 import os
 import sys
@@ -49,6 +50,8 @@ parser.add_argument('--continue', type=int, default=0, help='Continue from exist
 
 parser.add_argument('--slice2D', action='store_true', help='Compute and save 2D projected slices')
 
+parser.add_argument('--rad_vel', action='store_true', help='Compute and save 2D projected slices')
+
 parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims',
                 help='Directory to save the requested output')
 
@@ -82,6 +85,9 @@ posd = read_positions_all_files(filepath_prefix, downsample=args.downsample)
 
 # posd = posd[:10000]
 
+veld = read_velocities_all_files(filepath_prefix, downsample=args.downsample)
+
+
 print('\n Particle positions read from all binaries in the snapshot')
 t_bef, t_now = t_now, time()
 print(t_now-t_bef)
@@ -90,9 +96,6 @@ filepath = filepath_prefix + '.0'
 print(filepath)
 snap = Snapshot()
 snap.from_binary(filepath)
-
-
-
 
 
 
@@ -115,62 +118,74 @@ print('\n halos list read from the file')
 t_bef, t_now = t_now, time()
 print(t_now-t_bef)
 
+max_halos_total = args.continue + args.max_halos
+
 if args.continue:
-    with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.meta'), 'rt') as metafile:
+    with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.continue:d}.meta'), 'rt') as metafile:
         metadict = json.load(metafile)
     j = metadict['N_stack']
-    delta2D = np.load( os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
-    print(f'\n Continuing from existing stack of {metadict['N_stack']:d}')
-    t_bef, t_now = t_now, time()
-    print(t_now-t_bef)
+    if args.slice2D:
+        delta2D = np.load( os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.continue:d}.npy') )
+        print(f'\n Continuing from existing stack of {metadict['N_stack']:d}')
+        t_bef, t_now = t_now, time()
+        print(t_now-t_bef)
+    if args.rad_vel:
+        h5file_phase = tables.open_file(f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5', mode='a')
+        rad = h5file_phase.root.radius
+        rad_vel = h5file_phase.root.radial_velocity
 else:
     j = 0
-    delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
+    if args.slice2D:
+        delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
+    if args.rad_vel:
+        h5file_phase = tables.open_file(f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5', mode='w')
+        atom = tables.Float64Atom()
+        rad = h5file_phase.create_earray(h5file_phase.root, 'radius', atom, shape=(0,))
+        rad_vel = h5file_phase.create_earray(h5file_phase.root, 'radial_velocity', atom, shape=(0,))
 
 print('\n Starting with first halo')
 
 for h in halos_this_step.index:
-    t1 = time()
-    t_now1 = t1
-    
+    t_now1 = time()
 
     halo_cen = halos_this_step[['x(17)','y(18)','z(19)']].loc[h].to_numpy()
     region = Region('cube', cen=halo_cen,side=L_cube_focus,box_size=snap.box_size)
     # region = Region('sphere', cen=halo_cen,rad=R_sphere_focus,box_size=snap.box_size)
-    posd_select = region.selectPrtcl(posd)
+    select_index = region.selectPrtcl(posd)
 
     print('\n particles selected in a covering region')
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
-    
-    
 
-    posd_focus = region.shift_origin(posd_select)
+    posd_shifted = region.shift_origin(posd[select_index])
     # posd_focus =
-    
-    t2 = time()
+
     print('\n particle positions shifted to origin at halo centre')
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
-     
+
 
     if args.align:
         rot_vec = halos_this_step[['A[x](45)','A[y](46)','A[z](47)']].loc[h].to_numpy()
-        if np.isclose(rot_vec,0).all():
-            print("\n Can\'t rotate for this halo, probably spherical")
+        if not np.isclose(rot_vec,0).all():
+            posd_focus = Transform.rotate(posd_shifted, rot_vec)
         else:
-            posd_focus = Transform.rotate(posd_focus, rot_vec)
+            print("\n Can\'t rotate for this halo, probably spherical")
+            posd_focus = posd_shifted.copy()
+    else:
+        posd_focus = posd_shifted.copy()
+            
 
-    t3 = time()
     print('\n particle positions rotated')
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
-     
 
     posd_focus += L_cube/2
     posd_cube = posd_focus[np.all((posd_focus>0) & (posd_focus<L_cube), axis=1)]
+     
+    # posd_cube = posd_focus[np.all((posd_focus>-L_cube/2) & (posd_focus<L_cube/2), axis=1)]
+    # posd_cube += L_cube/2
 
-    t4 = time()
     print('\n particles selected for the grid')
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
@@ -178,7 +193,6 @@ for h in halos_this_step.index:
 
     particle_grid = assign_density(posd_cube, L_cube, args.grid_size, scheme=args.scheme, overdensity=False)
     
-    t5 = time()
     print('\n density assignment is done')
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
@@ -193,7 +207,6 @@ for h in halos_this_step.index:
     j+=1
     delta2D /= j
     
-    t6 = time()
     print('\n 2d projected density is obtained')
     t_bef1, t_now1 = t_now1, time()
     print(t_now1-t_bef1)
@@ -203,14 +216,19 @@ for h in halos_this_step.index:
         if not args.align:
             slicedir = os.path.join(slicedir, 'unaligned')
         os.makedirs(slicedir, exist_ok=True)
-        np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy'), delta2D)
-        with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.meta'), 'w') as metafile:
+        np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D)
+        with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.meta'), 'w') as metafile:
             dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
             json.dump(dict,metafile, indent=True)
             # file.write(i)
-    t7 = time()
 
-    print('time at each step', t1, t2, t3, t4, t5, t6, t7)
+    if args.rad_vel:
+        rad_j = np.linalg.norm(posd_shifted - L_cube/2, axis=1)
+        rad_vel_j = (veld[select_index] * posd_shifted).sum(axis=1) / rad_j
+        rad.append(rad_j)
+        rad_vel.append(rad_vel_j)
+
+    # print('time at each step', t1, t2, t3, t4, t5, t6, t7)
     print('\n {0} number of halo-centric images stacked at snapshot {1}'.format(j, args.snap_i))
     t_bef, t_now = t_now, time()
     print('total time per halo', t_now-t_bef)
@@ -222,6 +240,8 @@ for h in halos_this_step.index:
 
 del posd
 gc.collect()
+
+h5file_phase.close()
 
 
 
