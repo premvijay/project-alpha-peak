@@ -7,7 +7,7 @@ import sys
 import pickle, json
 from time import time, sleep
 
-from gadget_tools import Snapshot, read_positions_all_files
+from gadget_tools import Snapshot, read_positions_all_files, read_velocities_all_files
 from pm_tools import assign_density, project_to_slice, Region, Transform
 from field_tools import compute_power_spec
 
@@ -49,7 +49,7 @@ parser.add_argument('--grid_size', type=int, default=512,
 
 parser.add_argument('--align', type=int, default=1, help='Align and then stack images')
 
-parser.add_argument('--continue', type=int, default=0, help='Continue from existing stack')
+parser.add_argument('--use_existing', type=int, default=0, help='Continue from existing stack')
 
 parser.add_argument('--slice2D', action='store_true', help='Compute and save 2D projected slices')
 
@@ -70,8 +70,7 @@ args = parser.parse_args()
 # grid_size = 512 if args.grid_size is None else args.grid_size
 
 snapdir = os.path.join(args.simdir, args.simname, args.rundir)
-halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list',
-'halos_select_{0:.1e}_{1:d}{args.halos_file_suffix:s}.csv'.format(args.M_around,args.max_halos))
+halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{args.M_around:.1e}_{args.max_halos:d}{args.halos_file_suffix:s}.csv')
 
 outdir = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', args.scheme, '{0:d}'.format(args.grid_size) )
 os.makedirs(outdir, exist_ok=True)
@@ -121,19 +120,24 @@ print('\n halos list read from the file')
 t_bef, t_now = t_now, time()
 print(t_now-t_bef)
 
-max_halos_total = args.continue + args.max_halos
+max_halos_total = args.use_existing + args.max_halos
 
-if args.continue:
-    with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.continue:d}.meta'), 'rt') as metafile:
+phasedir = os.path.join(outdir,'phase-space')
+if not args.align:
+    phasedir = os.path.join(phasedir, 'unaligned')
+os.makedirs(phasedir, exist_ok=True)
+
+if args.use_existing:
+    with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.meta'), 'rt') as metafile:
         metadict = json.load(metafile)
     j = metadict['N_stack']
     if args.slice2D:
-        delta2D = np.load( os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.continue:d}.npy') )
-        print(f'\n Continuing from existing stack of {metadict['N_stack']:d}')
+        delta2D = np.load( os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
+        print(f'\n Continuing from existing stack of {j:d}')
         t_bef, t_now = t_now, time()
         print(t_now-t_bef)
     if args.phase_space_1D:
-        h5file_phase = tables.open_file(f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5', mode='a')
+        h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5'), mode='a')
         rad = h5file_phase.root.radius
         rad_vel = h5file_phase.root.radial_velocity
 else:
@@ -141,7 +145,7 @@ else:
     if args.slice2D:
         delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
     if args.phase_space_1D:
-        h5file_phase = tables.open_file(f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5', mode='w')
+        h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5'), mode='w')
         atom = tables.Float64Atom()
         rad = h5file_phase.create_earray(h5file_phase.root, 'radius', atom, shape=(0,))
         rad_vel = h5file_phase.create_earray(h5file_phase.root, 'radial_velocity', atom, shape=(0,))
