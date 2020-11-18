@@ -248,6 +248,16 @@ for h in halos_this_step.index:
 del posd
 gc.collect()
 
+if args.slice2D:
+    slicedir = os.path.join(outdir,'slice2D')
+    if not args.align:
+        slicedir = os.path.join(slicedir, 'unaligned')
+    os.makedirs(slicedir, exist_ok=True)
+    np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D)
+    with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.meta'), 'w') as metafile:
+        dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
+        json.dump(dict, metafile, indent=True)
+
 if args.phase_space_1D:
     h5file_phase.close()
 
