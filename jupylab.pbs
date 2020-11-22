@@ -1,0 +1,30 @@
+#!/bin/bash
+#PBS -l walltime=300:00:00
+#PBS -l select=1:ncpus=4
+#PBS -N jupyter-lab
+#PBS -m abe
+#PBS -M premv@iucaa.in
+#PBS -o /dev/null
+#PBS -e /dev/null
+
+cd $PBS_O_WORKDIR
+
+# choose your own unique port between 8000 and 9999
+NOTEBOOK_PORT_INT=32961
+NOTEBOOK_PORT_EXT=8890
+
+# setup tunnel between computing and login node
+# ssh -N -f -R $NOTEBOOK_PORT_EXT:localhost:$NOTEBOOK_PORT_INT $PBS_O_HOST
+
+jupnode=`hostname`
+
+ssh $PBS_O_HOST "screen -d -m ssh -N -f -L pegasus.ac.iucaa.in:$NOTEBOOK_PORT_EXT:$jupnode:$NOTEBOOK_PORT_INT localhost"
+
+# launch the notebook
+source ~/.bashrc
+conda activate conforg
+jupyter lab --ip=0.0.0.0 --port=$NOTEBOOK_PORT_INT --no-browser >> notebook.log 2>&1
+# jupyter lab --no-browser --ip=0.0.0.0 --port=8890 >> notebook.log 2>&1
+
+
+# python -m http.server
