@@ -14,6 +14,8 @@ from gadget_tools import Snapshot
 import sys
 assert sys.version_info[0] == 3, "Must be using Python 3"
 
+plt.style.use('dark_background')
+
 parser = argparse.ArgumentParser(description='Find most massive in a given tree.',
  usage= 'python')
 
@@ -59,7 +61,7 @@ fig1, axes = plt.subplots(1,2 , figsize=(15,7.5))#, dpi=120)
 mass_unit = r'$h^{-1}M_{\odot}$'
 
 bins = np.logspace(-7,3)
-axes[0].hist(halos['Acc_Rate_1*Tdyn(64)']/halos['mvir(10)']*t_H, log=True, density=True, bins=bins)
+axes[0].hist(halos['Acc_Rate_2*Tdyn(65)']/halos['mvir(10)']*t_H, log=True, density=True, bins=bins)
 # axes[0].set_xlabel(mass_unit+ '/yr')
 # axes[0].set_ylabel('Number of halos')
 axes[0].set_xlabel(r'Specific accretion rate $ \times ~ t_H$')
@@ -67,7 +69,7 @@ axes[0].set_xscale('log')
 axes[0].set_xlim(1e-7,1e3)
 axes[0].set_title(f'Histogram of specific accretion rate at redshift, z={round(snap.redshift,4):.4g}')
 
-axes[1].scatter(halos['Acc_Rate_1*Tdyn(64)']/halos['mvir(10)']*t_H, halos['mvir(10)'],  s=.25, alpha=.3)
+axes[1].scatter(halos['Acc_Rate_2*Tdyn(65)']/halos['mvir(10)']*t_H, halos['mvir(10)'],  s=.25, alpha=.3)
 axes[1].set_ylabel('virial mass '+mass_unit)
 axes[1].set_yscale('log')
 # axes[1].set_xlabel(mass_unit+ '/yr')
@@ -82,6 +84,6 @@ axes[1].set_xlim(1e-7,1e3)
 plt.tight_layout()
 plt.rc('font', size=12) 
 # fig1.savefig(os.path.join(plotsdir, f'snap_{i}.svg'))
-fig1.savefig(os.path.join(plotsdir, f'snap_{i}.png'))
+fig1.savefig(os.path.join(plotsdir, f'snap_{i}_2tdyn.png'))
 
 
