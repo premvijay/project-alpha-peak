@@ -13,3 +13,7 @@ out_file1.txt
 trash
 tmp*.*
 notes_and_results/plots_and_anims/bdm_cdm1024_r1/accretion_rate/snap_*.svg
+notebook.log
+code/halo_centric/phase-space_*_1by8_3.0e+12_1000.hdf5
+notes_and_results/tmp_notes
+code/halo_centric/run_single.sh
