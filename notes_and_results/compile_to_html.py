@@ -36,5 +36,5 @@ with open('misc/accretion_rate_hist.html', 'w') as output_html:
 
 (body, resources) = exporter.from_filename("halo_centric/velocity_stack.ipynb")
 
-with open('halo_centric/velocity_stack.ipynb', 'w') as output_html:
+with open('halo_centric/velocity_stack.html', 'w') as output_html:
     output_html.write(body)
