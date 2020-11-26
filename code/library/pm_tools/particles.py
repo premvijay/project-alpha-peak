@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
+from . import select_particles
 
 
 class Select_prtcl:
@@ -57,10 +58,15 @@ class SphereRegion:
         self.rad = rad
         self.box_size = box_size
     
-    def selectPrtcl(self, posd, shift_origin=False):
-        diff = np.fabs(posd-self.cen)
-        select_index = (np.linalg.norm(np.minimum(diff, self.box_size-diff), axis=1) <= self.rad).nonzero()
+    def selectPrtcl(self, posd, engine='c++', shift_origin=False):
+        if engine.lower()=='python':
+            diff = np.fabs(posd-self.cen)
+            select_index = (np.linalg.norm(np.minimum(diff, self.box_size-diff), axis=1) <= self.rad).nonzero()
+        elif engine.lower()=='c++':
+            select_index = (select_particles.within_sphere(posd, *self.cen, self.rad, self.box_size)).nonzero()
+
         return select_index
+
 
     def shift_origin(self, posd_select):
         return Transform.shift_origin_wrap(posd_select, self.cen, self.rad*1.5, self.box_size)
@@ -74,9 +80,16 @@ class CubeRegion:
         self.side = side
         self.box_size = box_size
     
-    def selectPrtcl(self, posd, shift_origin=False):
-        diff = np.fabs(posd-self.cen)
-        select_index = (np.minimum(diff, self.box_size-diff) < self.side/2 ).all(axis=1).nonzero()
+    def selectPrtcl(self, posd, engine='c++', shift_origin=False):
+        # diff = np.fabs(posd-self.cen)
+        # select_index = (np.minimum(diff, self.box_size-diff) < self.side/2 ).all(axis=1).nonzero()
+        # return select_index
+        if engine.lower()=='python':
+            diff = np.fabs(posd-self.cen)
+            select_index = (np.minimum(diff, self.box_size-diff) < self.side/2 ).all(axis=1).nonzero()
+        elif engine.lower()=='c++':
+            select_index = (select_particles.within_sphere(posd, *self.cen, self.side, self.box_size)).nonzero()
+
         return select_index
 
     def shift_origin(self, posd_select):
