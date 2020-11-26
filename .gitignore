@@ -17,3 +17,4 @@ notebook.log
 code/halo_centric/phase-space_*_1by8_3.0e+12_1000.hdf5
 notes_and_results/tmp_notes
 code/halo_centric/run_single.sh
+code/halo_centric/blhole/
