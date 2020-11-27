@@ -82,10 +82,7 @@ print('Hostname is', socket.gethostname() )
 
 t_now = time()
 
-filepath = filepath_prefix + '.0'
-print(filepath)
-snap = Snapshot()
-snap.from_binary(filepath)
+
 
 print('\n Starting to read snapshots binaries')
 
@@ -93,6 +90,12 @@ sys.stdout.flush()
 
 filename_prefix = 'snapshot_{0:03d}'.format(args.snap_i)
 filepath_prefix = os.path.join(snapdir, filename_prefix)
+
+filepath = filepath_prefix + '.0'
+print(filepath)
+snap = Snapshot()
+snap.from_binary(filepath)
+
 
 posd = read_positions_all_files(filepath_prefix, downsample=args.downsample)
 
@@ -162,7 +165,6 @@ if args.use_existing:
     if args.phase_space_hist_1D:
         rad_ps_hist = np.load( os.path.join(phasedir, f'phase-space_hist{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
 
-
     if args.phase_space_1D:
         h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5'), mode='a')
         rad = h5file_phase.root.radius
@@ -172,7 +174,7 @@ else:
     if args.slice2D:
         delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
     if args.phase_space_hist_1D:
-        rad_ps_hist = np.zeros((args.grid_size,)*2, dtype=np.float64)
+        rad_ps_hist = np.zeros((1024,)*2, dtype=np.float64)
     if args.phase_space_1D:
         h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5'), mode='w')
         atom = tables.Float64Atom()
@@ -235,7 +237,7 @@ for h in halos_this_step.index:
         print(t_now1-t_bef1)
 
     if args.slice2D:
-        grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=slice_thickness)
+        grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position='centre', thick=slice_thickness)
 
         print('\n 2d projected density is obtained')
         t_bef1, t_now1 = t_now1, time()
@@ -261,7 +263,7 @@ for h in halos_this_step.index:
 
     if args.phase_space_hist_1D:
         rad_ps_hist *= j
-        rad_ps_hist += np.histogram2d(rad, vel, bins=[np.linspace(0,10,1000),np.linspace(-10000,10000,1000)] )
+        rad_ps_hist += np.histogram2d(rad_j, rad_vel_j, bins=[np.linspace(0,10,1025),np.linspace(-10000,10000,1025)], density=True)[0]
         rad_ps_hist /= j+1
         np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), rad_ps_hist)
 
