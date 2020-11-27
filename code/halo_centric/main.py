@@ -53,7 +53,9 @@ parser.add_argument('--use_existing', type=int, default=0, help='Continue from e
 
 parser.add_argument('--slice2D', action='store_true', help='Compute and save 2D projected slices')
 
-parser.add_argument('--phase_space_1D', action='store_true', help='Compute and save 2D projected slices')
+parser.add_argument('--phase_space_1D', action='store_true', help='stack radial phase-space information of individual particles')
+
+parser.add_argument('--phase_space_hist_1D', action='store_true', help='phase-space radial density')
 
 parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims',
                 help='Directory to save the requested output')
@@ -71,6 +73,7 @@ args = parser.parse_args()
 
 snapdir = os.path.join(args.simdir, args.simname, args.rundir)
 halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{args.M_around:.1e}_{args.max_halos:d}{args.halos_file_suffix:s}.csv')
+halosfile = os.path.join('/scratch/cprem/sims', args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{args.M_around:.1e}_{args.max_halos:d}{args.halos_file_suffix:s}.csv')
 
 outdir = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', args.scheme, '{0:d}'.format(args.grid_size) )
 os.makedirs(outdir, exist_ok=True)
@@ -78,7 +81,15 @@ os.makedirs(outdir, exist_ok=True)
 print('Hostname is', socket.gethostname() )
 
 t_now = time()
+
+filepath = filepath_prefix + '.0'
+print(filepath)
+snap = Snapshot()
+snap.from_binary(filepath)
+
 print('\n Starting to read snapshots binaries')
+
+sys.stdout.flush()
 
 filename_prefix = 'snapshot_{0:03d}'.format(args.snap_i)
 filepath_prefix = os.path.join(snapdir, filename_prefix)
@@ -87,18 +98,22 @@ posd = read_positions_all_files(filepath_prefix, downsample=args.downsample)
 
 # posd = posd[:10000]
 
-veld = read_velocities_all_files(filepath_prefix, downsample=args.downsample)
-
 
 print('\n Particle positions read from all binaries in the snapshot')
 t_bef, t_now = t_now, time()
 print(t_now-t_bef)
 
-filepath = filepath_prefix + '.0'
-print(filepath)
-snap = Snapshot()
-snap.from_binary(filepath)
+sys.stdout.flush()
 
+veld = read_velocities_all_files(filepath_prefix, downsample=args.downsample)
+
+veld /= (1+snap.redshift)**0.5
+
+print('\n Particle velocities read from all binaries in the snapshot')
+t_bef, t_now = t_now, time()
+print(t_now-t_bef)
+
+sys.stdout.flush()
 
 
 halos = pd.read_csv(halosfile, engine='c', index_col='id(1)')
@@ -127,15 +142,27 @@ if not args.align:
     phasedir = os.path.join(phasedir, 'unaligned')
 os.makedirs(phasedir, exist_ok=True)
 
+slicedir = os.path.join(outdir,'slice2D')
+if not args.align:
+    slicedir = os.path.join(slicedir, 'unaligned')
+os.makedirs(slicedir, exist_ok=True)
+
 if args.use_existing:
     with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.meta'), 'rt') as metafile:
         metadict = json.load(metafile)
     j = metadict['N_stack']
+
+    print(f'\n Continuing from existing stack of {j:d}')
+    t_bef, t_now = t_now, time()
+    print(t_now-t_bef)
+
     if args.slice2D:
         delta2D = np.load( os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
-        print(f'\n Continuing from existing stack of {j:d}')
-        t_bef, t_now = t_now, time()
-        print(t_now-t_bef)
+        
+    if args.phase_space_hist_1D:
+        rad_ps_hist = np.load( os.path.join(phasedir, f'phase-space_hist{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
+
+
     if args.phase_space_1D:
         h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5'), mode='a')
         rad = h5file_phase.root.radius
@@ -144,6 +171,8 @@ else:
     j = 0
     if args.slice2D:
         delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
+    if args.phase_space_hist_1D:
+        rad_ps_hist = np.zeros((args.grid_size,)*2, dtype=np.float64)
     if args.phase_space_1D:
         h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5'), mode='w')
         atom = tables.Float64Atom()
@@ -156,9 +185,9 @@ for h in halos_this_step.index:
     t_now1 = time()
 
     halo_cen = halos_this_step[['x(17)','y(18)','z(19)']].loc[h].to_numpy()
-    region = Region('cube', cen=halo_cen,side=L_cube_focus,box_size=snap.box_size)
-    # region = Region('sphere', cen=halo_cen,rad=R_sphere_focus,box_size=snap.box_size)
-    select_index = region.selectPrtcl(posd)
+    # region = Region('cube', cen=halo_cen,side=L_cube_focus,box_size=snap.box_size)
+    region = Region('sphere', cen=halo_cen,rad=R_sphere_focus,box_size=snap.box_size)
+    select_index = region.selectPrtcl(posd, engine='c++')
 
     print('\n particles selected in a covering region')
     t_bef1, t_now1 = t_now1, time()
@@ -172,70 +201,82 @@ for h in halos_this_step.index:
     print(t_now1-t_bef1)
 
 
-    if args.align:
-        rot_vec = halos_this_step[['A[x](45)','A[y](46)','A[z](47)']].loc[h].to_numpy()
-        if not np.isclose(rot_vec,0).all():
-            posd_focus = Transform.rotate(posd_shifted, rot_vec)
-        else:
-            print("\n Can\'t rotate for this halo, probably spherical")
-            posd_focus = posd_shifted.copy()
-    else:
-        posd_focus = posd_shifted.copy()
-            
-
-    print('\n particle positions rotated')
-    t_bef1, t_now1 = t_now1, time()
-    print(t_now1-t_bef1)
-
-    posd_focus += L_cube/2
-    posd_cube = posd_focus[np.all((posd_focus>0) & (posd_focus<L_cube), axis=1)]
-     
-    # posd_cube = posd_focus[np.all((posd_focus>-L_cube/2) & (posd_focus<L_cube/2), axis=1)]
-    # posd_cube += L_cube/2
-
-    print('\n particles selected for the grid')
-    t_bef1, t_now1 = t_now1, time()
-    print(t_now1-t_bef1)
-     
-
-    particle_grid = assign_density(posd_cube, L_cube, args.grid_size, scheme=args.scheme, overdensity=False)
-    
-    print('\n density assignment is done')
-    t_bef1, t_now1 = t_now1, time()
-    print(t_now1-t_bef1)
-
-    # pdb.set_trace()
-    # print('start debug') 
-
-    grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=slice_thickness)
-
-    delta2D *= j
-    delta2D += (grid2D / mean_dens) - 1
-    j+=1
-    delta2D /= j
-    
-    print('\n 2d projected density is obtained')
-    t_bef1, t_now1 = t_now1, time()
-    print(t_now1-t_bef1)
-     
     if args.slice2D:
-        slicedir = os.path.join(outdir,'slice2D')
-        if not args.align:
-            slicedir = os.path.join(slicedir, 'unaligned')
-        os.makedirs(slicedir, exist_ok=True)
-        np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D)
-        with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.meta'), 'w') as metafile:
-            dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
-            json.dump(dict,metafile, indent=True)
-            # file.write(i)
+        if args.align:
+            rot_vec = halos_this_step[['A[x](45)','A[y](46)','A[z](47)']].loc[h].to_numpy()
+            if not np.isclose(rot_vec,0).all():
+                posd_focus = Transform.rotate(posd_shifted, rot_vec)
+            else:
+                print("\n Can\'t rotate for this halo, probably spherical")
+                posd_focus = posd_shifted.copy()
+        else:
+            posd_focus = posd_shifted.copy()
+                
 
-    if args.phase_space_1D:
+        print('\n particle positions rotated')
+        t_bef1, t_now1 = t_now1, time()
+        print(t_now1-t_bef1)
+
+        posd_focus += L_cube/2
+        posd_cube = posd_focus[np.all((posd_focus>0) & (posd_focus<L_cube), axis=1)]
+        
+        # posd_cube = posd_focus[np.all((posd_focus>-L_cube/2) & (posd_focus<L_cube/2), axis=1)]
+        # posd_cube += L_cube/2
+
+        print('\n particles selected for the grid')
+        t_bef1, t_now1 = t_now1, time()
+        print(t_now1-t_bef1)
+        
+
+        particle_grid = assign_density(posd_cube, L_cube, args.grid_size, scheme=args.scheme, overdensity=False)
+        
+        print('\n density assignment is done')
+        t_bef1, t_now1 = t_now1, time()
+        print(t_now1-t_bef1)
+
+    if args.slice2D:
+        grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position=(L_cube/2,)*3, thick=slice_thickness)
+
+        print('\n 2d projected density is obtained')
+        t_bef1, t_now1 = t_now1, time()
+        print(t_now1-t_bef1)
+
+        delta2D *= j
+        delta2D += (grid2D / mean_dens) - 1
+        delta2D /= j+1
+    
+        np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D)
+        
+        print('\n delta is stacked')
+        t_bef1, t_now1 = t_now1, time()
+        print(t_now1-t_bef1)
+
+    if args.phase_space_1D or args.phase_space_hist_1D:
         rad_j = np.linalg.norm(posd_shifted - L_cube/2, axis=1)
         rad_vel_j = (veld[select_index] * posd_shifted).sum(axis=1) / rad_j
+
+    if args.phase_space_1D:
         rad.append(rad_j)
         rad_vel.append(rad_vel_j)
 
-    # print('time at each step', t1, t2, t3, t4, t5, t6, t7)
+    if args.phase_space_hist_1D:
+        rad_ps_hist *= j
+        rad_ps_hist += np.histogram2d(rad, vel, bins=[np.linspace(0,10,1000),np.linspace(-10000,10000,1000)] )
+        rad_ps_hist /= j+1
+        np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), rad_ps_hist)
+
+    if args.phase_space_1D or args.phase_space_hist_1D:
+        print('\n velocities stacked')
+        t_bef1, t_now1 = t_now1, time()
+        print(t_now1-t_bef1)
+
+    j+=1
+
+    with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.meta'), 'w') as metafile:
+        dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
+        json.dump(dict,metafile, indent=True)
+        # file.write(i)
+
     print('\n {0} number of halo-centric images stacked at snapshot {1}'.format(j, args.snap_i))
     t_bef, t_now = t_now, time()
     print('total time per halo', t_now-t_bef)
@@ -245,18 +286,17 @@ for h in halos_this_step.index:
 
 
 
-del posd
+del posd, veld
 gc.collect()
 
 if args.slice2D:
-    slicedir = os.path.join(outdir,'slice2D')
-    if not args.align:
-        slicedir = os.path.join(slicedir, 'unaligned')
-    os.makedirs(slicedir, exist_ok=True)
     np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D)
     with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.meta'), 'w') as metafile:
         dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
         json.dump(dict, metafile, indent=True)
+
+if args.phase_space_hist_1D:
+    np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), rad_ps_hist)
 
 if args.phase_space_1D:
     h5file_phase.close()
