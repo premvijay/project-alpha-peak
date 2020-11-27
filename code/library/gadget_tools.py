@@ -142,7 +142,7 @@ def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10
             file_number += 1
 
     posd = np.vstack(pos_list)
-    # del pos_list[:]
+    del pos_list[:]
 
     return posd
 
@@ -175,7 +175,7 @@ def read_velocities_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=1
             file_number += 1
 
     veld = np.vstack(vel_list)
-    # del vel_list[:]
+    del vel_list[:]
 
     return veld
 
