@@ -2,6 +2,9 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from . import select_particles
 
+from time import time
+import sys
+
 
 class Select_prtcl:
     @staticmethod
@@ -63,7 +66,15 @@ class SphereRegion:
             diff = np.fabs(posd-self.cen)
             select_index = (np.linalg.norm(np.minimum(diff, self.box_size-diff), axis=1) <= self.rad).nonzero()
         elif engine.lower()=='c++':
-            select_index = (select_particles.within_sphere(posd, *self.cen, self.rad, self.box_size)).nonzero()
+            t_now = time()
+            select_cond_bool = select_particles.within_sphere(posd, *self.cen, self.rad, self.box_size)
+            t_bef, t_now = t_now, time()
+            print("\n    selection bool array obtained")
+            print(t_now-t_bef)
+            select_index = select_cond_bool.nonzero()
+            t_bef, t_now = t_now, time()
+            print("\n    selection index array obtained")
+            print(t_now-t_bef)
 
         return select_index
 

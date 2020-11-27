@@ -256,19 +256,23 @@ for h in halos_this_step.index:
     if args.phase_space_1D or args.phase_space_hist_1D:
         rad_j = np.linalg.norm(posd_shifted - L_cube/2, axis=1)
         rad_vel_j = (veld[select_index] * posd_shifted).sum(axis=1) / rad_j
+        print('\n radial velocities and positions computed')
+        t_bef1, t_now1 = t_now1, time()
+        print(t_now1-t_bef1)
 
     if args.phase_space_1D:
         rad.append(rad_j)
         rad_vel.append(rad_vel_j)
+        print('\n  individual radial velocities and positions stacked to hdf5')
+        t_bef1, t_now1 = t_now1, time()
+        print(t_now1-t_bef1)
 
     if args.phase_space_hist_1D:
         rad_ps_hist *= j
         rad_ps_hist += np.histogram2d(rad_j, rad_vel_j, bins=[np.linspace(0,10,1025),np.linspace(-10000,10000,1025)], density=True)[0]
         rad_ps_hist /= j+1
         np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), rad_ps_hist)
-
-    if args.phase_space_1D or args.phase_space_hist_1D:
-        print('\n velocities stacked')
+        print('\n  radial phase space distribution stacked as hist')
         t_bef1, t_now1 = t_now1, time()
         print(t_now1-t_bef1)
 
