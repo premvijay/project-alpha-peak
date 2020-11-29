@@ -22,12 +22,12 @@ parser.add_argument('--simname', type=str, default='bdm_cdm1024', help='Director
 parser.add_argument('--rundir', type=str, default='r1',
                 help='Directory name containing the snapshot binaries')
 
-parser.add_argument('--downsample', type=int, default=8, 
+parser.add_argument('--downsample', type=int, default=1, 
                 help='visualize the Downsampled particles in simulation by this many times')
 
 parser.add_argument('--tree_root', type=int, default=200)
 parser.add_argument('--M_around', type=float, default=3e12)
-parser.add_argument('--max_halos', type=int, default=500)
+parser.add_argument('--max_halos', type=int, default=1000)
 
 parser.add_argument('--align', type=int, default=1, help='Visualize aligned and then stacked images')
 
