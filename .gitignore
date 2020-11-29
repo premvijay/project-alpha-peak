@@ -9,6 +9,8 @@ code/global_properties/hello.txt
 code/halo_centric/tmp.py
 *.e5*
 *.o5*
+*.e6*
+*.o6*
 out_file1.txt
 trash
 tmp*.*
