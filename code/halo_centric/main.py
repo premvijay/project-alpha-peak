@@ -36,12 +36,12 @@ parser.add_argument('--downsample', type=int, default=1,
 
 parser.add_argument('--tree_root', type=int, default=200)
 parser.add_argument('--M_around', type=float, default=3e12)
-parser.add_argument('--max_halos', type=int, default=500)
+parser.add_argument('--max_halos', type=int, default=1000)
 
 parser.add_argument('--halos_file_suffix', type=str, default='',
                 help='halo file suffix like _1')
 
-parser.add_argument('--scheme', type=str, default='CIC',
+parser.add_argument('--scheme', type=str, default='TSC',
                 help='Scheme for assigning particles to grid')
 
 parser.add_argument('--grid_size', type=int, default=512,
@@ -181,6 +181,9 @@ else:
         rad = h5file_phase.create_earray(h5file_phase.root, 'radius', atom, shape=(0,))
         rad_vel = h5file_phase.create_earray(h5file_phase.root, 'radial_velocity', atom, shape=(0,))
 
+
+assert not np.isnan(delta2D).any(), 'before looping'
+
 print('\n Starting with first halo')
 
 for h in halos_this_step.index:
@@ -236,22 +239,30 @@ for h in halos_this_step.index:
         t_bef1, t_now1 = t_now1, time()
         print(t_now1-t_bef1)
 
+        assert not np.isnan(particle_grid).any(), 'dens assigned'
+
     if args.slice2D:
-        grid2D = project_to_slice(particle_grid, L_cube, axis=2, around_position='centre', thick=slice_thickness)
+        delta_j = (particle_grid / mean_dens) - 1
+        delta2D_j = project_to_slice(delta_j, L_cube, axis=2, around_position='centre', thick=slice_thickness)
 
         print('\n 2d projected density is obtained')
         t_bef1, t_now1 = t_now1, time()
         print(t_now1-t_bef1)
 
+        assert not np.isnan(delta2D_j).any(), 'delta'
+
         delta2D *= j
-        delta2D += (grid2D / mean_dens) - 1
+        delta2D += delta2D_j
         delta2D /= j+1
+
     
         np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D)
         
         print('\n delta is stacked')
         t_bef1, t_now1 = t_now1, time()
         print(t_now1-t_bef1)
+
+        assert not np.isnan(delta2D).any(), 'delta'
 
     if args.phase_space_1D or args.phase_space_hist_1D:
         rad_j = np.linalg.norm(posd_shifted - L_cube/2, axis=1)
