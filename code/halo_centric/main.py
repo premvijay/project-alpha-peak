@@ -132,6 +132,9 @@ L_cube_focus = np.sqrt(3) * L_cube * (1+1e-2)
 
 slice_thickness = 4*R_vir_root
 
+ps_r_max_vir = 15
+ps_r_max = ps_r_max_vir * R_vir_root
+
 mean_dens = posd.shape[0]/ (args.grid_size * snap.box_size / L_cube)**3
 
 print('\n halos list read from the file')
@@ -163,7 +166,7 @@ if args.use_existing:
         delta2D = np.load( os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
         
     if args.phase_space_hist_1D:
-        rad_ps_hist = np.load( os.path.join(phasedir, f'phase-space_hist{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
+        rad_ps_hist = np.load( os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
 
     if args.phase_space_1D:
         h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.hdf5'), mode='a')
@@ -173,6 +176,7 @@ else:
     j = 0
     if args.slice2D:
         delta2D = np.zeros((args.grid_size,)*2, dtype=np.float64)
+        assert not np.isnan(delta2D).any(), 'before looping'
     if args.phase_space_hist_1D:
         rad_ps_hist = np.zeros((1024,)*2, dtype=np.float64)
     if args.phase_space_1D:
@@ -181,8 +185,7 @@ else:
         rad = h5file_phase.create_earray(h5file_phase.root, 'radius', atom, shape=(0,))
         rad_vel = h5file_phase.create_earray(h5file_phase.root, 'radial_velocity', atom, shape=(0,))
 
-
-assert not np.isnan(delta2D).any(), 'before looping'
+ 
 
 print('\n Starting with first halo')
 
@@ -280,7 +283,7 @@ for h in halos_this_step.index:
 
     if args.phase_space_hist_1D:
         rad_ps_hist *= j
-        rad_ps_hist += np.histogram2d(rad_j, rad_vel_j, bins=[np.linspace(0,10,1025),np.linspace(-10000,10000,1025)], density=True)[0]
+        rad_ps_hist += np.histogram2d(rad_j, rad_vel_j, bins=[np.linspace(0,ps_r_max,1025),np.linspace(-10000,10000,1025)], density=True)[0]
         rad_ps_hist /= j+1
         np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), rad_ps_hist)
         print('\n  radial phase space distribution stacked as hist')
@@ -290,7 +293,7 @@ for h in halos_this_step.index:
     j+=1
 
     with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.meta'), 'w') as metafile:
-        dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
+        dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness, 'ps_r_max':ps_r_max, 'ps_r_max_vir':ps_r_max_vir}
         json.dump(dict,metafile, indent=True)
         # file.write(i)
 
@@ -308,9 +311,6 @@ gc.collect()
 
 if args.slice2D:
     np.save(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D)
-    with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.meta'), 'w') as metafile:
-        dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness}
-        json.dump(dict, metafile, indent=True)
 
 if args.phase_space_hist_1D:
     np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), rad_ps_hist)
@@ -318,6 +318,9 @@ if args.phase_space_hist_1D:
 if args.phase_space_1D:
     h5file_phase.close()
 
+with open(os.path.join(slicedir, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.meta'), 'w') as metafile:
+    dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness, 'ps_r_max':ps_r_max, 'ps_r_max_vir':ps_r_max_vir}
+    json.dump(dict,metafile, indent=True)
 
 
 print('\n density assigned to grid around halos for snapshot {0:03d}'.format(args.snap_i))
