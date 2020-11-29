@@ -9,4 +9,4 @@ cd $PBS_O_WORKDIR
 source ~/.bashrc
 conda activate conforg
 ### python39forge --version
-parallel --sshloginfile $PBS_NODEFILE  -j 3 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --max_halos 1000 --M_around {1} --simname bdm_cdm1024 --align {2}" :::  2e11 3e12 1e14 ::: 0 1
+parallel --sshloginfile $PBS_NODEFILE  -j 3 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --max_halos 1000 --M_around {1} --simname bdm_cdm1024 --downsample 8 --align {2}" :::  2e11 3e12 1e14 ::: 0 1

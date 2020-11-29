@@ -34,6 +34,8 @@ parser.add_argument('--align', type=int, default=1, help='Visualize aligned and 
 parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims')
 parser.add_argument('--plots_into', type=str, default='/mnt/home/student/cprem/project-alpha-peak/notes_and_results/plots_and_anims')
 
+parser.add_argument('--phase_space_hist_1D', action='store_true', help='phase-space radial density')
+
 
 args = parser.parse_args()
 
@@ -52,6 +54,7 @@ print(savesdir)
 halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{args.M_around:.1e}_{args.max_halos:d}.csv')
 
 slicedir = os.path.join(savesdir,'slice2D')
+phasedir = os.path.join(savesdir,'phase-space')
 infodir = os.path.join(savesdir_global,'info')
 
 plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{args.rundir:s}', f'halo_centric_{scheme:s}_{grid_size:d}')
@@ -97,6 +100,8 @@ M_vir_range = ( halos_root['mvir(10)'].min(), halos_root['mvir(10)'].max() )
 
 
 delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
+
+phase_space_1D = np.load( os.path.join(phasedir, f'phase-space_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
 
 
 fig1, ax1 = plt.subplots(figsize=(9,7.5))#, dpi=120)
@@ -186,3 +191,59 @@ writer = Writer(fps=10)
 
 anim.save(os.path.join(plotsdir, f'simulation_visualisation{align_str}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.mp4'), writer=writer, dpi=100)
 print("saved")
+
+
+
+
+
+fig1, ax1 = plt.subplots(figsize=(9,7.5))
+im1 = ax1.imshow(phase_space_1D.T, norm=LogNorm(), extent=[0,15,-10000,10000], aspect='auto')
+# plt.xlim(0,10)
+fig1.colorbar(im1, ax=ax1)
+ax1.set_xlabel(r'Radius in units of $~R_{\rm{vir}}(z=0)$' + f" = {metadict['R_vir_root']:.3f} {r'$h^{-1}$':s} Mpc")
+ax1.set_ylabel(r'Peculiar velocity in km/s')
+
+ax1.set_title(f"Radial phase space density - averaged over {metadict['N_stack']} halos")
+
+fig1.suptitle(f"Snapshot-{i:03d} at redshift z={snap.redshift:.4f};     Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme}\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
+print(i,'stopping')
+
+plt.tight_layout()
+
+fig1.savefig(os.path.join(plotsdir, f'phase_space_1D{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.pdf'))
+fig1.savefig(os.path.join(plotsdir, f'phase_space_1D{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.png'))
+fig1.savefig(os.path.join(plotsdir, f'phase_space_1D{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.svg'))
+
+def update_phase_space(i):
+    print(i, 'starting')
+    phase_space_1D = np.load( os.path.join(phasedir, f'phase-space_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
+    im1.set_data(phase_space_1D.T)
+    
+    with open( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.meta'), 'rt' ) as metafile:
+        metadict = json.load(metafile)
+    with open(os.path.join(infodir, f'header_{i:03d}.p'), 'rb') as infofile:
+        snap=pickle.load(infofile)
+
+    halos_this_step = halos[halos['Snap_num(31)']==i]
+    M_vir = halos_this_step['mvir(10)'].mean()
+    R_vir_sc = ( M_vir / (4/3 * np.pi * Del_vir(Omega(snap.redshift, snap.Omega_m_0)) * mean_dens_comoving) )**(1/3)
+
+    ax1.set_title(f"Radial phase space density - averaged over {metadict['N_stack']} halos")
+
+    
+    fig1.suptitle(f"Snapshot-{i:03d} at redshift z={snap.redshift:.4f};     Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme}\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
+    print(i,'stopping')
+
+
+anim = matplotlib.animation.FuncAnimation(fig1, update_phase_space, frames=range(6,args.tree_root+1), interval=500)
+
+# plt.rcParams['animation.ffmpeg_path'] = ''
+
+# Writer=matplotlib.animation.ImageMagickWriter
+Writer=matplotlib.animation.FFMpegWriter
+writer = Writer(fps=10)
+
+anim.save(os.path.join(plotsdir, f'phase_space_1D{align_str}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.mp4'), writer=writer, dpi=100)
+print("saved")
+
+
