@@ -1,0 +1,16 @@
+#!/bin/bash
+#PBS -l walltime=25:00:00
+#PBS -l select=14:ncpus=15
+#PBS -N halo_accr_rate_history
+#PBS -m abe
+#PBS -M premv@iucaa.in
+### Start
+source ~/.bashrc
+cd $PBS_O_WORKDIR; conda activate conforg
+echo Hello > hello.txt
+
+parallel --sshloginfile $PBS_NODEFILE -j 15 "cd $PBS_O_WORKDIR && conda activate conforg && python ./halo_accretion_rate.py --snap_i {1} --accr_strings 'Inst(62)' '100Myr(63)' '1*Tdyn(64)' '2*Tdyn(65)'" ::: {1..200}
+cd /mnt/home/student/cprem/project-alpha-peak/notes_and_results/plots_and_anims/bdm_cdm1024_r1/accretion_rate/
+parallel --sshloginfile $PBS_NODEFILE -j 1 "cd {1}; source ~/.bashrc && conda activate conforg; ffmpeg -y -start_number 1 -framerate 2 -i snap_%03d_{2}.png video_{2}.mp4"  ::: /mnt/home/student/cprem/project-alpha-peak/notes_and_results/plots_and_anims/bdm_cdm1024_r1/accretion_rate/ ::: 'Inst(62)' '100Myr(63)' '1*Tdyn(64)' '2*Tdyn(65)'
+rm -f snap_{001..199}_{'Inst(62)','100Myr(63)','1*Tdyn(64)','2*Tdyn(65)'}.{'pn','sv'}g 
+# rm snap_{1..199}_*.svg
