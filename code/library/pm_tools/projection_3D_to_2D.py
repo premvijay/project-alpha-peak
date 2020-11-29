@@ -5,9 +5,10 @@ import sys
 
 def average_2D_slice(grid, box_size, axis, around_position, thick):
     t_now = time()
+    # print(box_size, axis, around_position, thick)
     if around_position == 'centre':
         start = round((1/2 - thick/2 / box_size) * grid.shape[axis])
-        stop = round((1/2 - thick/2 / box_size) * grid.shape[axis])
+        stop = round((1/2 + thick/2 / box_size) * grid.shape[axis])
         idx_range = slice(start,stop) 
     else:
         start = (around_position[axis] - thick/2) * grid.shape[axis] // box_size
@@ -20,7 +21,8 @@ def average_2D_slice(grid, box_size, axis, around_position, thick):
     t_bef, t_now = t_now, time()
     print("\n    slice index obtained")
     print(t_now-t_bef)
-
+    # print(grid[idx_range_3D])
+    sys.stdout.flush()
     return grid[idx_range_3D].mean(axis=axis)
 
     # grid_select = grid[idx_range_3D]
