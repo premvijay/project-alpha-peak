@@ -22,7 +22,7 @@ def average_2D_slice(grid, box_size, axis, around_position, thick):
     print("\n    slice index obtained")
     print(t_now-t_bef)
     # print(grid[idx_range_3D])
-    sys.stdout.flush()
+    # sys.stdout.flush()
     return grid[idx_range_3D].mean(axis=axis)
 
     # grid_select = grid[idx_range_3D]
