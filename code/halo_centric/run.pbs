@@ -10,6 +10,6 @@ cd $PBS_O_WORKDIR; conda activate conforg
 echo Hello > hello.txt
 bash ../library/pm_tools/compile_module.sh
 echo 'C++ code has been recompiled'
-parallel --sshloginfile $PBS_NODEFILE -j 9 "cd $PBS_O_WORKDIR && conda activate conforg && python ./main.py --simname bdm_cdm1024 --rundir r1 --snap_i {3} --M_around {2} --max_halos 1000 --downsample 1 --scheme TSC --grid_size 512 --slice2D --align {1} --phase_space_hist_1D | tee -a out_file1.txt" ::: 1 0 ::: 2e11 3e12 1e14 ::: `seq 1 1 200`
+parallel --sshloginfile $PBS_NODEFILE -j 9 "cd $PBS_O_WORKDIR && conda activate conforg && python ./main.py --simname bdm_cdm1024 --snap_i {3} --M_around {2} --max_halos 1000 --downsample 1 --scheme TSC --grid_size 512 --slice2D --align {1} --phase_space_hist_1D | tee -a out_file1.txt" ::: 1 0 ::: 2e11 3e12 1e14 ::: `seq 1 1 200`
 ### parallel --sshloginfile $PBS_NODEFILE -j 16 "cd $PBS_O_WORKDIR && ./run_single.sh"
 ### '--align'
