@@ -24,9 +24,9 @@ exporter = HTMLExporter(config=c)
 # exporter.register_preprocessor(TagRemovePreprocessor(config=c),True)
 
 
-(body, resources) = exporter.from_filename("halo_centric.ipynb")
+(body, resources) = exporter.from_filename("halo_centric/delta_stack.ipynb")
 
-with open('halo_centric.html', 'w') as output_html:
+with open('halo_centric/delta_stack.html', 'w') as output_html:
     output_html.write(body)
 
 (body, resources) = exporter.from_filename("misc/accretion_rate_hist.ipynb")
