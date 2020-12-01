@@ -276,9 +276,9 @@ for h in halos_this_step.index:
 
         # delta_j = (particle_grid_aligned / mean_dens) - 1
         if args.noalign:
-            delta2D_j_unaligned = project_to_slice(particle_grid_unaligned, L_cube, axis=2, around_position='centre', thick=slice_thickness)
+            particle_grid2D_unaligned = project_to_slice(particle_grid_unaligned, L_cube, axis=2, around_position='centre', thick=slice_thickness)
         if args.align:
-            delta2D_j_aligned = project_to_slice(particle_grid_aligned, L_cube, axis=2, around_position='centre', thick=slice_thickness)
+            particle_grid2D_aligned = project_to_slice(particle_grid_aligned, L_cube, axis=2, around_position='centre', thick=slice_thickness)
 
         print('\n 2d projected density is obtained')
         t_bef1, t_now1 = t_now1, time()
@@ -287,14 +287,14 @@ for h in halos_this_step.index:
         # assert not np.isnan(delta2D_j).any(), 'delta'
         if args.noalign:
             delta2D_unaligned *= j
-            delta2D_unaligned += delta2D_j_unaligned
+            delta2D_unaligned += (particle_grid2D_unaligned / mean_dens) - 1
             delta2D_unaligned /= j+1
 
             np.save(os.path.join(slicedir_unaligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D_unaligned)
 
         if args.align:
             delta2D_aligned *= j
-            delta2D_aligned += delta2D_j_aligned
+            delta2D_aligned += (particle_grid2D_aligned / mean_dens) - 1
             delta2D_aligned /= j+1    
 
             np.save(os.path.join(slicedir_aligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D_aligned)
@@ -361,7 +361,8 @@ if args.phase_space_1D:
     h5file_phase.close()
 
 with open(os.path.join(metadir, f'meta_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.json'), 'w') as metafile:
-    dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'slice_thickness':slice_thickness, 'ps_r_max':ps_r_max, 'ps_r_max_vir':ps_r_max_vir, 'ps_vr_max':ps_vr_max}
+    dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'M_vir_root':M_vir_root, 'v_vir_root':v_vir_root, 
+    'slice_thickness':slice_thickness, 'ps_r_max':ps_r_max, 'ps_r_max_vir':ps_r_max_vir, 'ps_vr_max':ps_vr_max, 'ps_vr_max_vir':ps_vr_max_vir, }
     json.dump(dict,metafile, indent=True)
 
 
