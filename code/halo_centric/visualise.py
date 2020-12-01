@@ -132,10 +132,11 @@ ax1.add_artist(at)
 r_vir_circ = mpatches.Circle((0,0),radius=metadict['R_vir'], fill=False, label='virial radius from halo catalogue')
 ax1.add_patch(r_vir_circ)
 
-axisratio_2_1 = (halos_this_step['b_to_a(43)'].mean() * halos_this_step['c_to_a(44)'].mean() )**(1/2)
-#(halos_this_step['b_to_a(43)'].mean()**2 + halos_this_step['c_to_a(44)'].mean()**2 )**(1/2)
-r_vir_ell = mpatches.Ellipse((0,0), height=metadict['R_vir']*2, width=metadict['R_vir']*2*axisratio_2_1, fill=False, label='virial boandary based on halo catalogue')
-ax1.add_patch(r_vir_ell)
+if args.align:
+    axisratio_2_1 = (halos_this_step['b_to_a(43)'].mean() * halos_this_step['c_to_a(44)'].mean() )**(1/2)
+    #(halos_this_step['b_to_a(43)'].mean()**2 + halos_this_step['c_to_a(44)'].mean()**2 )**(1/2)
+    r_vir_ell = mpatches.Ellipse((0,0), height=metadict['R_vir']*2, width=metadict['R_vir']*2*axisratio_2_1, fill=False, label='virial boandary based on halo catalogue')
+    ax1.add_patch(r_vir_ell)
 
 # M_vir = args.M_around 
 M_vir = halos_this_step['mvir(10)'].mean()
@@ -167,11 +168,13 @@ def update(i):
     M_vir = halos_this_step['mvir(10)'].mean()
     R_vir_sc = ( M_vir / (4/3 * np.pi * Del_vir(Omega(snap.redshift, snap.Omega_m_0)) * mean_dens_comoving) )**(1/3)
 
-    axisratio_2_1 = (halos_this_step['b_to_a(43)'].mean() * halos_this_step['c_to_a(44)'].mean() )**(1/2)
-
     r_vir_circ.set_radius(metadict['R_vir'])
-    r_vir_ell.set_height(metadict['R_vir']*2)
-    r_vir_ell.set_width(metadict['R_vir']*2*axisratio_2_1)
+
+    if args.align:
+        axisratio_2_1 = (halos_this_step['b_to_a(43)'].mean() * halos_this_step['c_to_a(44)'].mean() )**(1/2)
+        r_vir_ell.set_height(metadict['R_vir']*2)
+        r_vir_ell.set_width(metadict['R_vir']*2*axisratio_2_1)
+        
     r_vir_sc_circ.set_radius(R_vir_sc)
 
     ax1.set_title(r'$4 ~R_{\rm{vir}}(z=0)$' + f" = {slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
@@ -197,7 +200,7 @@ print("saved")
 
 
 fig1, ax1 = plt.subplots(figsize=(9,7.5))
-im1 = ax1.imshow(phase_space_1D.T, norm=LogNorm(), extent=[0,15,-10000,10000], aspect='auto')
+im1 = ax1.imshow(phase_space_1D.T, norm=LogNorm(), extent=[0,metadict['ps_r_max_vir'],-10000,10000], aspect='auto')
 # plt.xlim(0,10)
 fig1.colorbar(im1, ax=ax1)
 ax1.set_xlabel(r'Radius in units of $~R_{\rm{vir}}(z=0)$' + f" = {metadict['R_vir_root']:.3f} {r'$h^{-1}$':s} Mpc")
