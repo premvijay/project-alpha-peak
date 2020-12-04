@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l walltime=01:00:00
-#PBS -l select=2:ncpus=10:mem=50GB
+#PBS -l select=4:ncpus=12:mem=50GB
 #PBS -N visualise_halo_history
 #PBS -m abe
 #PBS -M premv@iucaa.in
@@ -9,4 +9,5 @@ cd $PBS_O_WORKDIR
 source ~/.bashrc
 conda activate conforg
 ### python39forge --version
-parallel --sshloginfile $PBS_NODEFILE  -j 3 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --max_halos 1000 --M_around {1} --simname bdm_cdm1024 --downsample 8 --align {2}" :::  2e11 3e12 1e14 ::: 0 1
+### parallel --sshloginfile $PBS_NODEFILE  -j 3 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --light_snaps {4} --M_around {1} --simname bdm_zs1e5f0.51024 --downsample {3} --align {2} --snap_i {5}" :::  2e11 3e12 1e14 ::: 0 1 ::: 8 ::: 0 ::: 150
+parallel --sshloginfile $PBS_NODEFILE  -j 12 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --light_snaps {4} --M_around {1} --simname bdm_zs1e5f0.51024 --downsample {3} --align {2} --snap_i {5}" :::  2e11 3e12 1e14 ::: 0 1 ::: 8 ::: 1 ::: 50 100 150 200
