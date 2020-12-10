@@ -1,4 +1,5 @@
 import numpy as np
+import gc
 
 class Snapshot():
     def __init__(self, snapfile=None, hdf5_support='True'):
@@ -143,6 +144,8 @@ def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10
 
     posd = np.vstack(pos_list)
     del pos_list[:]
+    del pos_list
+    gc.collect()
 
     return posd
 
