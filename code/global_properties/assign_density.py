@@ -18,9 +18,9 @@ parser = argparse.ArgumentParser(
     description='Assign density and compute power spectrum.',
     usage= 'python assign_density.py')
 
-parser.add_argument('--simdir', type=str, help='Directory path for all simulations')
+parser.add_argument('--simdir', default='/scratch/aseem/sims/', type=str, help='Directory path for all simulations')
 parser.add_argument('--simname', type=str, help='Simulation directory name')
-parser.add_argument('--rundir', type=str, help='Directory name containing the snapshot binaries')
+parser.add_argument('--rundir', type=str, default='r1', help='Directory name containing the snapshot binaries')
 
 parser.add_argument('--snap_i', type=int, help='Snapshot index number')
 
@@ -37,7 +37,7 @@ parser.add_argument('--outdir', type=str, help='Directory to save the requested 
 args = parser.parse_args()
 
 snapdir = os.path.join(args.simdir, args.simname, args.rundir)
-outdir = os.path.join(args.outdir, args.simname, args.rundir, args.scheme, '{0:d}'.format(args.grid_size) )
+outdir = os.path.join(args.outdir, args.simname, args.rundir, 'global', args.scheme, '{0:d}'.format(args.grid_size) )
 os.makedirs(outdir, exist_ok=True)
 
 print('Hostname is', socket.gethostname() )
@@ -77,11 +77,11 @@ print('\n Density assigned for snapshot {0:03d}'.format(args.snap_i))
 t_bef, t_now = t_now, time()
 print(t_now-t_bef)
 
-infodir = os.path.join(outdir,'info')
-os.makedirs(infodir, exist_ok=True)
+# infodir = os.path.join(outdir,'info')
+# os.makedirs(infodir, exist_ok=True)
 
-with open(os.path.join(infodir, 'header_{0:03d}.p'.format(args.snap_i) ),'wb') as headfile:
-    pickle.dump((snap),headfile)
+# with open(os.path.join(infodir, 'header_{0:03d}.p'.format(args.snap_i) ),'wb') as headfile:
+#     pickle.dump((snap),headfile)
 
 
 if args.slice2D:
@@ -93,15 +93,21 @@ if args.slice2D:
     np.save(os.path.join(slicedir, 'slice_{0:03d}.npy'.format(args.snap_i) ), delta_slice)
 
 if args.Pk:
-    power_spec = compute_power_spec(delta,snap.box_size, interlace_with_FX=delta_shifted)
     Pkdir = os.path.join(outdir,'power_spectrum')
     os.makedirs(Pkdir, exist_ok=True)
-    if args.interlace:
-        filepath = os.path.join(Pkdir, 'Pk_interlaced_{0:03d}.csv'.format(args.snap_i) )
-    else:
-        filepath = os.path.join(Pkdir, 'Pk_{0:03d}.csv'.format(args.snap_i) )
+    power_spec = compute_power_spec(delta,snap.box_size, interlace_with_FX=None)
+    filepath = os.path.join(Pkdir, 'Pk_{0:03d}.csv'.format(args.snap_i) )
     power_spec.to_csv(filepath, sep='\t', index=False, 
                             float_format='%.8e', header=['k (h/Mpc)', 'P(k) (Mpc/h)^3'])
+
+    if args.interlace:
+        power_spec_inlcd = compute_power_spec(delta,snap.box_size, interlace_with_FX=delta_shifted)
+        filepath = os.path.join(Pkdir, 'Pk_interlaced_{0:03d}.csv'.format(args.snap_i) )
+        power_spec_inlcd.to_csv(filepath, sep='\t', index=False, 
+                            float_format='%.8e', header=['k (h/Mpc)', 'P(k) (Mpc/h)^3'])
+
+        
+    
 
 
 
