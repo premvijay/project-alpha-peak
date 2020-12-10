@@ -49,20 +49,20 @@ savesdir = os.path.join('/scratch/cprem/sims', args.simname, args.rundir, scheme
 
 print(savesdir)
 
+simdir = os.path.join('/scratch/aseem/sims', args.simname, args.rundir)
 
 slicedir = os.path.join(savesdir,'slice2D')
 Pkdir = os.path.join(savesdir,'power_spectrum')
 infodir = os.path.join(savesdir,'info')
-plotsdir = os.path.join(savesdir, 'plots_and_anims')
-os.makedirs(plotsdir, exist_ok=True)
+# plotsdir = os.path.join(savesdir, 'plots_and_anims')
+# os.makedirs(plotsdir, exist_ok=True)
 
 plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{args.rundir:s}', f'full_box_{scheme:s}_{grid_size:d}')
 os.makedirs(plotsdir, exist_ok=True)
 
 i = args.snap_i
 
-with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
-    snap=pickle.load(infofile)
+snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
 
 box_size = snap.box_size
 
@@ -141,8 +141,8 @@ def update(i):
         plot3.set_xdata(power_spec_inlcd_grouped1['k'].values)
         plot3.set_ydata(power_spec_inlcd_grouped1['Pk'].values)
 
-    with open(os.path.join(infodir, 'header_{0:03d}.p'.format(i)), 'rb') as infofile:
-        snap=pickle.load(infofile)
+    snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
+    
     fig1.suptitle("Snapshot-{0:03d} at redshift z={1:.4f};     Simulation: {2}, Grid size: {3}, Scheme: {4}".format(i,snap.redshift,args.simname,grid_size,scheme))
     print(i,'stopping')
 
