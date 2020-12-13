@@ -45,7 +45,8 @@ else:
 
 # simname = 'bdm_cdm1024' if args.simname is None else args.simname
 
-# schemes = ['NGP', 'CIC', 'TSC']
+schemes = ['NGP', 'CIC', 'TSC']
+p = schemes.index(scheme) + 1
 
 # simnames = ['bdm_cdm1024'
 
@@ -70,6 +71,14 @@ for i in i_list:
     savesdir = os.path.join('/scratch/cprem/sims', args.simname, args.rundir, 'global', scheme, '{0:d}'.format(grid_size))
     print(savesdir)
 
+    color=next(ax2._get_lines.prop_cycler)['color']
+
+    # transfer_df = pd.read_csv('/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt', sep='\s+',header=None)
+
+    # ax2.plot(transfer_df[0], transfer_df[1]**2*transfer_df[0]/ (1+snap.redshift), color=color, linestyle='dotted', label='linear theory')
+    # ax2.set_xscale('log')
+    # ax2.set_yscale('log')
+
     Pkdir = os.path.join(savesdir,'power_spectrum')
     # infodir = os.path.join(savesdir,'info')
 
@@ -82,7 +91,7 @@ for i in i_list:
         power_spec_inlcd = pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64')
         power_spec_inlcd.columns = ['k', 'Pk']
 
-    lin_bin = np.linspace(power_spec['k'].iloc[1],power_spec['k'].iloc[-10], 200)
+    lin_bin = np.linspace(power_spec['k'].iloc[1],8e0, 200)
     log_bin = np.logspace(-2,1.3, 100)
     merge_bin = np.concatenate([lin_bin,log_bin])
     merge_bin.sort()
@@ -93,8 +102,10 @@ for i in i_list:
 
     if interlaced:
         power_spec_inlcd_grouped1 = power_spec_inlcd.groupby(pd.cut(power_spec_inlcd['k'], bins=lin_bin)).mean()
-        ax2.plot(power_spec_inlcd_grouped1['k'],power_spec_inlcd_grouped1['Pk'], label=f"z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in snapshot-{i:03d}")[0]
+        ax2.plot(power_spec_inlcd_grouped1['k'],power_spec_inlcd_grouped1['Pk']/ np.sinc(power_spec_inlcd_grouped1['k']/16)**(2*p), color=color, linestyle='solid', label=f"z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in snapshot-{i:03d}")[0]
 
+    power_spec_existing = pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
+    power_spec_existing.plot('k','pk', loglog=True, ax=ax2, color=color, linestyle='dashdot', label='reference ')
 
 
 # pdb.set_trace()
@@ -105,7 +116,8 @@ ax2.set_xlabel(r"$k$  ($h$ Mpc$^{-1}$)")
 ax2.set_ylabel(r"$P(k)$  ($h^{-1}$Mpc)$^3$")
 ax2.set_xscale('log')
 ax2.set_yscale('log')
-ax2.set_ylim(top=1e5)
+ax2.set_xlim(5e-2,2e1)
+ax2.set_ylim(top=1e5, bottom=2e-1)
 ax2.grid(True)
 fig1.suptitle(f"Matter power spectrum from {args.simname:s} simulation at different redshifts")
 ax2.legend()

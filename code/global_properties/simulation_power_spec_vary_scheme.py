@@ -10,6 +10,10 @@ import pdb
 
 from gadget_tools import Snapshot
 
+# import matplotlib as mpl
+# mpl.rcParams['lines.linewidth'] = .5
+
+# plt.rcParams["lines.linewidth"] = 1
 
 parser = argparse.ArgumentParser(
     description='Density field evolution from Gadget simulation.',
@@ -59,11 +63,23 @@ box_size = snap.box_size
 
 fig1, ax2 = plt.subplots(1, figsize=(7.5,7), dpi=150)
 
+transfer_df = pd.read_csv('/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt', sep='\s+',header=None)
+
+ax2.plot(transfer_df[0], transfer_df[1]**2*transfer_df[0]/ (1+snap.redshift), linestyle='dotted', label='linear theory P(k)')
+ax2.set_xscale('log')
+ax2.set_yscale('log')
+
+
+power_spec_existing = pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
+power_spec_existing.plot('k','pk', loglog=True, ax=ax2, linestyle='dashdot', label='reference non-linear P(k)')
+
 ax2.plot([],[], ' ', label=f"Snapshot-{i:03d}, Grid-size: {grid_size:d}")
+
+
 
 # fig1.suptitle("Simulation: {2}, ".format(i,snap.redshift,args.simname,grid_size)    )
 
-for scheme in schemes:
+for p,scheme in enumerate(schemes, start=1):
     savesdir = os.path.join('/scratch/cprem/sims', args.simname, args.rundir, 'global', scheme, '{0:d}'.format(grid_size))
     print(savesdir)
 
@@ -71,6 +87,8 @@ for scheme in schemes:
     # infodir = os.path.join(savesdir,'info')
 
     # ax1.set_xscale('log')
+    # p = schemes.index(scheme)
+    
     
     power_spec = pd.read_csv(os.path.join(Pkdir, 'Pk_{0:03d}.csv'.format(i)), sep='\t', dtype='float64')
     power_spec.columns = ['k', 'Pk']
@@ -79,18 +97,19 @@ for scheme in schemes:
         power_spec_inlcd = pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64')
         power_spec_inlcd.columns = ['k', 'Pk']
 
-    lin_bin = np.linspace(power_spec['k'].iloc[1],power_spec['k'].iloc[-10], 200)
+    lin_bin = np.linspace(power_spec['k'].iloc[1],8e0, 200)
     log_bin = np.logspace(-2,1.3, 100)
     merge_bin = np.concatenate([lin_bin,log_bin])
     merge_bin.sort()
 
+    color=next(ax2._get_lines.prop_cycler)['color']
 
     power_spec_grouped1 = power_spec.groupby(pd.cut(power_spec['k'], bins=lin_bin)).mean()
-    ax2.plot(power_spec_grouped1['k'],power_spec_grouped1['Pk'], label=f"{scheme:s} scheme without interlacing")[0]
+    ax2.plot(power_spec_grouped1['k'], power_spec_grouped1['Pk']/ np.sinc(power_spec_grouped1['k']/16)**(2*p), color=color, linestyle='solid', linewidth=1, label=f"{scheme:s} scheme without interlacing")[0]
 
     if interlaced:
         power_spec_inlcd_grouped1 = power_spec_inlcd.groupby(pd.cut(power_spec_inlcd['k'], bins=lin_bin)).mean()
-        ax2.plot(power_spec_inlcd_grouped1['k'],power_spec_inlcd_grouped1['Pk'], label=f"{scheme:s} scheme with interlacing")[0]
+        ax2.plot(power_spec_inlcd_grouped1['k'],power_spec_inlcd_grouped1['Pk']/ np.sinc(power_spec_inlcd_grouped1['k']/16)**(2*p), color=color, linestyle='dashed', linewidth=1, label=f"{scheme:s} scheme with interlacing")[0]
 
 
 
@@ -102,13 +121,14 @@ ax2.set_xlabel(r"$k$  ($h$ Mpc$^{-1}$)")
 ax2.set_ylabel(r"$P(k)$  ($h^{-1}$Mpc)$^3$")
 ax2.set_xscale('log')
 ax2.set_yscale('log')
-ax2.set_ylim(top=1e5)
+ax2.set_xlim(5e-2,2e1)
+ax2.set_ylim(top=1e5, bottom=2e-1)
 ax2.grid(True)
 ax2.set_title(f"Matter power spectrum from {args.simname:s} simulation at redshift z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} ")
 ax2.legend()
 
 plt.tight_layout()
 
-fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_vary_scheme_{i:03d}{theme:s}.pdf'))
-fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_vary_scheme_{i:03d}{theme:s}.png'))
+fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_vary_scheme_{i:03d}{theme:s}.pdf'), dpi=600)
+fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_vary_scheme_{i:03d}{theme:s}.png'), dpi=600)
 # fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_{i:03d}{theme:s}.svg'))

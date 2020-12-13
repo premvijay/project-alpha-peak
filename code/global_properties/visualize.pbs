@@ -8,7 +8,7 @@ cd $PBS_O_WORKDIR
 source ~/.bashrc
 conda activate conforg
 echo Hello > hello.txt
-### parallel --sshloginfile $PBS_NODEFILE -j 10 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python ./simulation_power_spec_vary_z.py --simname {1} --rundir r1 | tee -a out_file1.txt" ::: scm1024 bdm_cdm1024 bdm_zs1e5f0.51024
-### parallel --sshloginfile $PBS_NODEFILE -j 10 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python ./simulation_power_spec_vary_scheme.py --simname {1} --rundir r1 --snap_i 200 | tee -a out_file1.txt" ::: scm1024 bdm_cdm1024 bdm_zs1e5f0.51024
+parallel --sshloginfile $PBS_NODEFILE -j 10 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python ./simulation_power_spec_vary_z.py --simname {1} --rundir r1 | tee -a out_file1.txt" ::: scm1024 bdm_cdm1024 bdm_zs1e5f0.51024
+parallel --sshloginfile $PBS_NODEFILE -j 10 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python ./simulation_power_spec_vary_scheme.py --simname {1} --rundir r1 --snap_i {2} | tee -a out_file1.txt" ::: scm1024 bdm_cdm1024 bdm_zs1e5f0.51024 ::: 100 200
 ###
-parallel --sshloginfile $PBS_NODEFILE -j 10 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python ./visualize_simulation_images.py --simname {1} --rundir r1 --snap_i {2} --scheme {3} | tee -a out_file1.txt" ::: scm1024 bdm_cdm1024 bdm_zs1e5f0.51024  ::: {0..200..50} ::: NGP CIC TSC
+### parallel --sshloginfile $PBS_NODEFILE -j 10 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python ./visualize_simulation_images.py --simname {1} --rundir r1 --snap_i {2} --scheme {3} | tee -a out_file1.txt" ::: scm1024 bdm_cdm1024 bdm_zs1e5f0.51024  ::: {0..200..50} ::: NGP CIC TSC
