@@ -89,7 +89,7 @@ filepath = os.path.join(outdir,'halos_select_M_{0:.2g}to{1:.2g}_G_{2:.2g}to{3:.2
 halos_select.set_index('Depth_first_ID(28)', inplace=True)
 halos_select.to_csv(filepath)
 
-mmp_branch(filepath, treesdir, 190)
+mmp_branch(filepath, treesdir, 1)
 
     
 
