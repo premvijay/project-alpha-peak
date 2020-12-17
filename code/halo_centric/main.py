@@ -35,8 +35,11 @@ parser.add_argument('--downsample', type=int, default=1,
                 help='Downsample the particles in simulation by this many times')
 
 parser.add_argument('--tree_root', type=int, default=200)
-parser.add_argument('--M_around', type=float, default=3e12)
-parser.add_argument('--max_halos', type=int, default=1000)
+# parser.add_argument('--M_around', type=float, default=3e12)
+# parser.add_argument('--max_halos', type=int, default=1000)
+
+parser.add_argument('--M_range', type=float, nargs=2, default=[2.9e12,3.1e12])
+parser.add_argument('--Gam_range', type=float, nargs=2, default=[0.5,1])
 
 parser.add_argument('--halos_file_suffix', type=str, default='',
                 help='halo file suffix like _1')
@@ -69,6 +72,8 @@ args = parser.parse_args()
 if not args.align and not args.noalign:
     args.noalign = True
 
+halo_sel_str = 'M_{0:.2g}to{1:.2g}_G_{2:.2g}to{3:.2g}'.format(*args.M_range, *args.Gam_range)
+
 # simdir = '/scratch/aseem/sims' if args.simdir is None else args.simdir
 # simname = 'bdm_cdm1024' if args.simname is None else args.simname
 # outdir = '/scratch/cprem/sims' if args.outdir is None else args.outdir
@@ -77,11 +82,15 @@ if not args.align and not args.noalign:
 # grid_size = 512 if args.grid_size is None else args.grid_size
 
 snapdir = os.path.join(args.simdir, args.simname, args.rundir)
-halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{args.M_around:.1e}_{args.max_halos:d}{args.halos_file_suffix:s}.csv')
+halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{halo_sel_str:s}{args.halos_file_suffix:s}.csv')
 # halosfile = os.path.join('/scratch/cprem/sims', args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{args.M_around:.1e}_{args.max_halos:d}{args.halos_file_suffix:s}.csv')
 
 outdir = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', args.scheme, '{0:d}'.format(args.grid_size) )
+# outdir = os.path.join('/mnt/home/student/cprem/project-alpha-peak/code/halo_centric/blhole', args.simname, args.rundir, 'halo_centric', args.scheme, '{0:d}'.format(args.grid_size) )
+
 os.makedirs(outdir, exist_ok=True)
+
+
 
 print('Hostname is', socket.gethostname() )
 
@@ -153,7 +162,7 @@ print('\n halos list read from the file')
 t_bef, t_now = t_now, time()
 print(t_now-t_bef)
 
-max_halos_total = args.use_existing + args.max_halos
+# max_halos_total = args.use_existing + args.max_halos
 
 phasedir = os.path.join(outdir,'phase-space')
 metadir = os.path.join(outdir,'meta')
@@ -170,7 +179,7 @@ os.makedirs(slicedir_unaligned, exist_ok=True)
 os.makedirs(slicedir_aligned, exist_ok=True)
 
 if args.use_existing:
-    with open(os.path.join(metadir, f'meta_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.json'), 'rt') as metafile:
+    with open(os.path.join(metadir, f'meta_{args.snap_i:03d}_1by{args.downsample:d}_{args.use_existing:d}.json'), 'rt') as metafile:
         metadict = json.load(metafile)
     j = metadict['N_stack']
 
@@ -180,15 +189,15 @@ if args.use_existing:
 
     if args.slice2D:
         if args.noalign:
-            delta2D_unaligned = np.load( os.path.join(slicedir_unaligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
+            delta2D_unaligned = np.load( os.path.join(slicedir_unaligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.use_existing:d}.npy') )
         if args.align:
-            delta2D_aligned = np.load( os.path.join(slicedir_aligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
+            delta2D_aligned = np.load( os.path.join(slicedir_aligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.use_existing:d}.npy') )
         
     if args.phase_space_hist_1D:
-        rad_ps_hist = np.load( os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.npy') )
+        rad_ps_hist = np.load( os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.use_existing:d}.npy') )
 
     if args.phase_space_1D:
-        h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.use_existing:d}.hdf5'), mode='a')
+        h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.use_existing:d}.hdf5'), mode='a')
         rad = h5file_phase.root.radius
         rad_vel = h5file_phase.root.radial_velocity
 else:
@@ -202,7 +211,7 @@ else:
     if args.phase_space_hist_1D:
         rad_ps_hist = np.zeros((1024,)*2, dtype=np.float64)
     if args.phase_space_1D:
-        h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.hdf5'), mode='w')
+        h5file_phase = tables.open_file(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.hdf5'), mode='w')
         atom = tables.Float64Atom()
         rad = h5file_phase.create_earray(h5file_phase.root, 'radius', atom, shape=(0,))
         rad_vel = h5file_phase.create_earray(h5file_phase.root, 'radial_velocity', atom, shape=(0,))
@@ -290,14 +299,14 @@ for h in halos_this_step.index:
             delta2D_unaligned += (particle_grid2D_unaligned / mean_dens) - 1
             delta2D_unaligned /= j+1
 
-            np.save(os.path.join(slicedir_unaligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D_unaligned)
+            np.save(os.path.join(slicedir_unaligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy'), delta2D_unaligned)
 
         if args.align:
             delta2D_aligned *= j
             delta2D_aligned += (particle_grid2D_aligned / mean_dens) - 1
             delta2D_aligned /= j+1    
 
-            np.save(os.path.join(slicedir_aligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D_aligned)
+            np.save(os.path.join(slicedir_aligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy'), delta2D_aligned)
         
         print('\n delta is stacked')
         t_bef1, t_now1 = t_now1, time()
@@ -323,14 +332,14 @@ for h in halos_this_step.index:
         rad_ps_hist *= j
         rad_ps_hist += np.histogram2d(rad_j, rad_vel_j, bins=[np.linspace(0,ps_r_max,1025),np.linspace(-ps_vr_max,ps_vr_max,1025)], density=True)[0]*rad_j.shape[0]
         rad_ps_hist /= j+1
-        np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), rad_ps_hist)
+        np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy'), rad_ps_hist)
         print('\n  radial phase space distribution stacked as hist')
         t_bef1, t_now1 = t_now1, time()
         print(t_now1-t_bef1)
 
     j+=1
 
-    with open(os.path.join(metadir, f'meta_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.json'), 'w') as metafile:
+    with open(os.path.join(metadir, f'meta_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.json'), 'w') as metafile:
         dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'M_vir_root':M_vir_root, 'v_vir_root':v_vir_root, 
         'slice_thickness':slice_thickness, 'ps_r_max':ps_r_max, 'ps_r_max_vir':ps_r_max_vir, 'ps_vr_max':ps_vr_max, 'ps_vr_max_vir':ps_vr_max_vir, }
         json.dump(dict,metafile, indent=True)
@@ -350,17 +359,17 @@ gc.collect()
 
 if args.slice2D:
     if args.noalign:
-        np.save(os.path.join(slicedir_unaligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D_unaligned)
+        np.save(os.path.join(slicedir_unaligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy'), delta2D_unaligned)
     if args.align:
-        np.save(os.path.join(slicedir_aligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), delta2D_aligned)
+        np.save(os.path.join(slicedir_aligned, f'slice_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy'), delta2D_aligned)
 
 if args.phase_space_hist_1D:
-    np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.npy'), rad_ps_hist)
+    np.save(os.path.join(phasedir, f'phase-space_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy'), rad_ps_hist)
 
 if args.phase_space_1D:
     h5file_phase.close()
 
-with open(os.path.join(metadir, f'meta_{args.snap_i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{max_halos_total:d}.json'), 'w') as metafile:
+with open(os.path.join(metadir, f'meta_{args.snap_i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.json'), 'w') as metafile:
     dict = {'N_stack':j, 'L_cube':L_cube, 'R_vir':R_vir, 'R_vir_root':R_vir_root, 'M_vir_root':M_vir_root, 'v_vir_root':v_vir_root, 
     'slice_thickness':slice_thickness, 'ps_r_max':ps_r_max, 'ps_r_max_vir':ps_r_max_vir, 'ps_vr_max':ps_vr_max, 'ps_vr_max_vir':ps_vr_max_vir, }
     json.dump(dict,metafile, indent=True)
