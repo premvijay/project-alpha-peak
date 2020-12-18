@@ -19,8 +19,8 @@ NOTEBOOK_PORT_EXT=43445
 jupnode=`hostname`
 
 ### ssh $PBS_O_HOST "screen -d -m ssh -N -f -L pegasus.ac.iucaa.in:$NOTEBOOK_PORT_EXT:$jupnode:$NOTEBOOK_PORT_INT localhost"
-echo "lsof -i tcp:${NOTEBOOK_PORT_EXT} | awk 'NR!=1 {print \$2}' | xargs kill" > juptunnel.sh
-echo "ssh -N -f -L pegasus.ac.iucaa.in:$NOTEBOOK_PORT_EXT:$jupnode:$NOTEBOOK_PORT_INT localhost" >> juptunnel.sh
+echo "lsof -i tcp:${NOTEBOOK_PORT_EXT} | awk 'NR!=1 {print \$2}' | xargs kill" > tunneljupy.sh
+echo "ssh -N -f -L pegasus.ac.iucaa.in:$NOTEBOOK_PORT_EXT:$jupnode:$NOTEBOOK_PORT_INT localhost" >> tunneljupy.sh
 
 # launch the notebook
 source ~/.bashrc
