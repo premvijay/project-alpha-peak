@@ -26,8 +26,9 @@ parser.add_argument('--downsample', type=int, default=1,
                 help='visualize the Downsampled particles in simulation by this many times')
 
 parser.add_argument('--tree_root', type=int, default=200)
-parser.add_argument('--M_around', type=float, default=3e12)
-parser.add_argument('--max_halos', type=int, default=1000)
+
+parser.add_argument('--M_range', type=float, nargs=2, default=[2.9e12,3.1e12])
+parser.add_argument('--Gam_range', type=float, nargs=2, default=[0.5,1])
 
 parser.add_argument('--align', type=int, default=1, help='Visualize aligned and then stacked images')
 
@@ -46,11 +47,12 @@ args = parser.parse_args()
 grid_size = 512
 scheme = 'TSC'
 
-save_delta = False
+save_delta = False # No please save delta
 save_phasespace = False
-save_delta = True
-# save_phasespace = True
+save_delta = True   # Yes save delta
+save_phasespace = True
 
+halo_sel_str = 'M_{0:.2g}to{1:.2g}_G_{2:.2g}to{3:.2g}'.format(*args.M_range, *args.Gam_range)
 
 # dark_all = True
 if args.light_snaps:
@@ -71,7 +73,7 @@ savesdir = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 
 
 print(savesdir)
 
-halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{args.M_around:.1e}_{args.max_halos:d}.csv')
+halosfile = os.path.join(args.outdir, args.simname, args.rundir, 'halo_centric', 'halos_list', f'halos_select_{halo_sel_str:s}.csv')
 
 simdir = os.path.join('/scratch/aseem/sims', args.simname, args.rundir)
 slicedir = os.path.join(savesdir,'slice2D')
@@ -110,7 +112,7 @@ snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
 
 mean_dens_comoving = np.dot(snap.mass_table*1e10, snap.N_prtcl_total) / snap.box_size**3
 
-with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.json'), 'rt' ) as metafile:
+with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.json'), 'rt' ) as metafile:
     metadict = json.load(metafile)
 
 box_size = metadict['L_cube']
@@ -123,9 +125,9 @@ M_vir_range = ( halos_root['mvir(10)'].min(), halos_root['mvir(10)'].max() )
 # Omega = lambda z : Omega(z, snap.Omega_m_0)
 
 
-delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
+delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy') )
 
-phase_space_1D = np.load( os.path.join(phasedir, f'phase-space_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
+phase_space_1D = np.load( os.path.join(phasedir, f'phase-space_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy') )
 
 
 fig1, ax1 = plt.subplots(figsize=(9,7.5))#, dpi=120)
@@ -175,16 +177,16 @@ plt.legend()
 plt.tight_layout()
 
 if save_delta:
-    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}{theme:s}.pdf'))
-    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}{theme:s}.png'))
-    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}{theme:s}.svg'))
+    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.pdf'))
+    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.png'))
+    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.svg'))
 
 def update(i):
     print(i, 'starting')
-    delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
+    delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy') )
     im1.set_data(delta_slice+1+1e-5)
     
-    with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.json'), 'rt' ) as metafile:
+    with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.json'), 'rt' ) as metafile:
         metadict = json.load(metafile)
     # with open(os.path.join(infodir, f'header_{i:03d}.p'), 'rb') as infofile:
     #     snap=pickle.load(infofile)
@@ -218,12 +220,12 @@ Writer=matplotlib.animation.FFMpegWriter
 writer = Writer(fps=10)
 
 if not args.light_snaps and save_delta:
-    anim.save(os.path.join(plotsdir, f'simulation_visualisation{align_str}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.mp4'), writer=writer, dpi=100)
+    anim.save(os.path.join(plotsdir, f'simulation_visualisation{align_str}_1by{args.downsample:d}_{halo_sel_str:s}.mp4'), writer=writer, dpi=100)
     print("saved video density delta")
 
 i = args.snap_i
 
-with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.json'), 'rt' ) as metafile:
+with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.json'), 'rt' ) as metafile:
     metadict = json.load(metafile)
 # with open(os.path.join(infodir, f'header_{i:03d}.p'), 'rb') as infofile:
 #     snap=pickle.load(infofile)
@@ -231,7 +233,7 @@ snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
 
 
 fig1, ax1 = plt.subplots(figsize=(12,7.5))
-im1 = ax1.imshow(phase_space_1D.T*snap.mass_table[1]*1e7, norm=LogNorm(), extent=[0,metadict['ps_r_max_vir'],-metadict['ps_vr_max_vir'],metadict['ps_vr_max_vir']], aspect='auto')
+im1 = ax1.imshow(phase_space_1D.T*snap.mass_table[1]*1e7, norm=LogNorm(), interpolation='quadric', extent=[0,metadict['ps_r_max_vir'],-metadict['ps_vr_max_vir'],metadict['ps_vr_max_vir']], aspect='auto')
 # plt.xlim(0,10)
 cb1 = fig1.colorbar(im1, ax=ax1)
 ax1.set_xlim(0,3)
@@ -243,24 +245,24 @@ ax1.set_xlabel(r'Distance from halo centre in units of $~R_{\rm{vir}}(z=0)$' + f
 ax1.set_ylabel(r'Peculiar velocity radially away from halo in units of $~v_{\rm{vir}}(z=0)$' + f" = {metadict['v_vir_root']:.3f} km/s")
 ax1.set_title(f"Radial phase space density - averaged over {metadict['N_stack']} halos")
 
-fig1.suptitle(f"Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f};\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
+fig1.suptitle(f"Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f};\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.1e},{M_vir_range[1]:.1e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
 
 
 plt.tight_layout()
 
 if save_phasespace:
-    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}{theme:s}.pdf'))
-    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}{theme:s}.png'))
-    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}{theme:s}.svg'))
+    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.pdf'))
+    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.png'))
+    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.svg'))
 
 def update_phase_space(i):
     print(i, 'starting')
-    phase_space_1D = np.load( os.path.join(phasedir, f'phase-space_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.npy') )
+    phase_space_1D = np.load( os.path.join(phasedir, f'phase-space_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy') )
     snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
 
     im1.set_data(phase_space_1D.T*snap.mass_table[1]*1e7)
     
-    with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.json'), 'rt' ) as metafile:
+    with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.json'), 'rt' ) as metafile:
         metadict = json.load(metafile)
     # with open(os.path.join(infodir, f'header_{i:03d}.p'), 'rb') as infofile:
     #     snap=pickle.load(infofile)
@@ -273,7 +275,7 @@ def update_phase_space(i):
 
     ax1.set_title(f"Radial phase space density - averaged over {metadict['N_stack']} halos")    
 
-    fig1.suptitle(f"Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f};\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
+    fig1.suptitle(f"Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f};\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.1e},{M_vir_range[1]:.1e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
 
 
 
@@ -286,7 +288,7 @@ Writer=matplotlib.animation.FFMpegWriter
 writer = Writer(fps=10)
 
 if not args.light_snaps and save_phasespace:
-    anim.save(os.path.join(plotsdir, f'phase_space_1D_1by{args.downsample:d}_{args.M_around:.1e}_{args.max_halos:d}.mp4'), writer=writer, dpi=100)
+    anim.save(os.path.join(plotsdir, f'phase_space_1D_1by{args.downsample:d}_{halo_sel_str:s}.mp4'), writer=writer, dpi=100)
     print("saved video phase-space")
 
 
