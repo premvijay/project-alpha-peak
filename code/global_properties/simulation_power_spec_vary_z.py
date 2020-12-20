@@ -60,6 +60,10 @@ def D1(z, Om0):
 
 # simnames = ['bdm_cdm1024'
 
+transfer_func_file = '/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt'
+
+transfer_df = pd.read_csv(transfer_func_file, sep='\s+',header=None)
+
 plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{args.rundir:s}', f'full_box')
 os.makedirs(plotsdir, exist_ok=True)
 
@@ -84,7 +88,7 @@ for i in i_list:
 
     color=next(ax2._get_lines.prop_cycler)['color']
 
-    transfer_df = pd.read_csv('/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt', sep='\s+',header=None)
+    # transfer_df = pd.read_csv('/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt', sep='\s+',header=None)
 
     k_full = transfer_df[0]
     pk_lin = transfer_df[1]**2*transfer_df[0] * (D1(snap.redshift, snap.Omega_m_0)/ D1(0, snap.Omega_m_0))**2
@@ -96,7 +100,7 @@ for i in i_list:
     # ax2.set_xscale('log')
     # ax2.set_yscale('log')
 
-    pk_fit = halofit.NonLinPowerSpecCDM(snap.Omega_m_0)
+    pk_fit = halofit.NonLinPowerSpecCDM(Omega(snap.redshift, snap.Omega_m_0))
     pk_fit.set_Del2L_interpolate(k_full, pk_lin)
     pk_fit.compute_params()
     print(vars(pk_fit))

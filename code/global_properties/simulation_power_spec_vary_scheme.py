@@ -66,7 +66,9 @@ k_nyq = 2*np.pi * grid_size / snap.box_size
 
 fig1, ax2 = plt.subplots(1, figsize=(7.5,7), dpi=150)
 
-transfer_df = pd.read_csv('/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt', sep='\s+',header=None)
+transfer_func_file = '/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt'
+
+transfer_df = pd.read_csv(transfer_func_file, sep='\s+',header=None)
 
 def Omega(z, Om0):
     E = Om0 * (1+z)**3 + (1-Om0)
@@ -90,7 +92,7 @@ ax2.set_yscale('log')
 # except:
 #     print('no reference available')
 
-pk_fit = halofit.NonLinPowerSpecCDM(snap.Omega_m_0)
+pk_fit = halofit.NonLinPowerSpecCDM(Omega(snap.redshift, snap.Omega_m_0))
 pk_fit.set_Del2L_interpolate(k_full, pk_lin)
 pk_fit.compute_params()
 print(vars(pk_fit))
