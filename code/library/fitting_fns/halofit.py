@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 from scipy.optimize import root_scalar
 
 
-class NonLinPowerSpec:
+class NonLinPowerSpecCDM:
     def __init__(self, Omega_m=0.3):
         self.Om_m = Omega_m
 

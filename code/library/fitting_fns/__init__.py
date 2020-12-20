@@ -1,1 +1,1 @@
-from .halofit import NonLinPowerSpec as HaloFitPowerSpecCDM
+from .halofit import NonLinPowerSpecCDM as HaloFitPowerSpecCDM
