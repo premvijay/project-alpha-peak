@@ -9,6 +9,7 @@ import argparse
 import pdb
 
 from gadget_tools import Snapshot
+from fitting_fns import halofit
 
 
 parser = argparse.ArgumentParser(
@@ -48,6 +49,15 @@ else:
 schemes = ['NGP', 'CIC', 'TSC']
 p = schemes.index(scheme) + 1
 
+def Omega(z, Om0):
+    E = Om0 * (1+z)**3 + (1-Om0)
+    return Om0 * (1+z)**3 / E
+
+def D1(z, Om0):
+    Om_m = Omega(z, Om0)
+    Om_L = 1 - Om_m
+    return 5/2* 1/(1+z) * Om_m / (Om_m**(4/7) - Om_L + (1+Om_m/2)*(1+Om_L/70))
+
 # simnames = ['bdm_cdm1024'
 
 plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{args.rundir:s}', f'full_box')
@@ -65,6 +75,7 @@ for i in i_list:
     snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
 
     box_size = snap.box_size
+    k_nyq = 2*np.pi * grid_size / snap.box_size
 # fig1.suptitle("Simulation: {2}, ".format(i,snap.redshift,args.simname,grid_size)    )
 
 # for scheme in schemes:
@@ -73,16 +84,26 @@ for i in i_list:
 
     color=next(ax2._get_lines.prop_cycler)['color']
 
-    # transfer_df = pd.read_csv('/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt', sep='\s+',header=None)
+    transfer_df = pd.read_csv('/mnt/home/faculty/caseem/config/transfer/classTf_om0.14086_Ok0.0_ob0.02226_h0.6781_ns0.9677.txt', sep='\s+',header=None)
 
+    k_full = transfer_df[0]
+    pk_lin = transfer_df[1]**2*transfer_df[0] * (D1(snap.redshift, snap.Omega_m_0)/ D1(0, snap.Omega_m_0))**2
+
+    ax2.plot(k_full, pk_lin, color=color, linestyle='dotted')
+    ax2.set_xscale('log')
+    ax2.set_yscale('log')
     # ax2.plot(transfer_df[0], transfer_df[1]**2*transfer_df[0]/ (1+snap.redshift), color=color, linestyle='dotted', label='linear theory')
     # ax2.set_xscale('log')
     # ax2.set_yscale('log')
 
+    pk_fit = halofit.NonLinPowerSpecCDM(snap.Omega_m_0)
+    pk_fit.set_Del2L_interpolate(k_full, pk_lin)
+    pk_fit.compute_params()
+    print(vars(pk_fit))
+    ax2.plot(k_full, pk_fit.P(k_full), linestyle='dashdot', color=color)
+
     Pkdir = os.path.join(savesdir,'power_spectrum')
     # infodir = os.path.join(savesdir,'info')
-
-    # ax1.set_xscale('log')
     
     power_spec = pd.read_csv(os.path.join(Pkdir, 'Pk_{0:03d}.csv'.format(i)), sep='\t', dtype='float64')
     power_spec.columns = ['k', 'Pk']
@@ -102,11 +123,14 @@ for i in i_list:
 
     if interlaced:
         power_spec_inlcd_grouped1 = power_spec_inlcd.groupby(pd.cut(power_spec_inlcd['k'], bins=lin_bin)).mean()
-        ax2.plot(power_spec_inlcd_grouped1['k'],power_spec_inlcd_grouped1['Pk']/ np.sinc(power_spec_inlcd_grouped1['k']/16)**(2*p), color=color, linestyle='solid', label=f"z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in snapshot-{i:03d}")[0]
+        power_spec_inlcd_grouped1['W_correct'] = np.sinc(power_spec_inlcd_grouped1['k']/k_nyq)**(2*p+1)
+        ax2.plot(power_spec_inlcd_grouped1['k'],power_spec_inlcd_grouped1['Pk']/ power_spec_inlcd_grouped1['W_correct'], color=color, linestyle='solid', label=f"z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in snapshot-{i:03d}")[0]
 
-    power_spec_existing = pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
-    power_spec_existing.plot('k','pk', loglog=True, ax=ax2, color=color, linestyle='dashdot', label='reference ')
+    # power_spec_existing = pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
+    # power_spec_existing.plot('k','pk', loglog=True, ax=ax2, color=color, linestyle='dashdot', label='reference ')
 
+plt.plot([],[], linestyle='dotted', color='black', label='from linear theory')
+plt.plot([],[], linestyle='dashdot', color='black', label='using halofit model')
 
 # pdb.set_trace()
 
