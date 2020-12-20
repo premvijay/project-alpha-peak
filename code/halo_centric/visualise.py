@@ -39,7 +39,7 @@ parser.add_argument('--phase_space_hist_1D', action='store_true', help='phase-sp
 
 parser.add_argument('--snap_i', type=int, default=200, help='Snapshot index number')
 
-parser.add_argument('--light_snaps', type=int, default=0, help='save white bg images for pdf notes')
+parser.add_argument('--light_snaps', type=int, default=1, help='save white bg images for pdf notes')
 
 
 args = parser.parse_args()
@@ -121,26 +121,26 @@ slice_thickness = metadict['slice_thickness']
 M_vir_median = halos_root['mvir(10)'].median()
 M_vir_range = ( halos_root['mvir(10)'].min(), halos_root['mvir(10)'].max() )
 
-
 # Omega = lambda z : Omega(z, snap.Omega_m_0)
 
 
 delta_slice = np.load( os.path.join(slicedir, f'slice_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy') )
 
-phase_space_1D = np.load( os.path.join(phasedir, f'phase-space_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy') )
 
 
 fig1, ax1 = plt.subplots(figsize=(9,7.5))#, dpi=120)
 
 mass_unit = r'$h^{-1}M_{\odot}$'
-
-fig1.suptitle(f"Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f};\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
+M_vir_str = r'$M_{\rm{vir}}$'
+Gamma_latex = r'$\Gamma$'
 
 im1 = ax1.imshow(delta_slice+1+1e-5, extent=[-box_size/2,box_size/2,-box_size/2,box_size/2], norm=LogNorm(vmin=3e-1))
 cb1 = fig1.colorbar(im1,ax=ax1)
 cb1.set_label(r"$(1+\delta)$")
 # ax1.set_title(f"{slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
-ax1.set_title(r'$4 ~R_{\rm{vir}}(z=0)$' + f" = {slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
+# fig1.suptitle(f"Halos selected at z=0 such that  \n Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f}") 
+# r'$4 ~R_{\rm{vir}}(z=0)$'
+ax1.set_title(f"Density at z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in {slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick spatial slice averaged around {metadict['N_stack']} halos, \n selected with {args.M_range[0]:.2g} {mass_unit:s} < {M_vir_str:s} < {args.M_range[1]:.2g} {mass_unit:s} and {args.Gam_range[0]:.2g} < {Gamma_latex:s} < {args.Gam_range[1]:.2g} at z=0 ")
 ax1.set_xlabel(r"$h^{-1}$Mpc")
 ax1.set_ylabel(r"$h^{-1}$Mpc")
 
@@ -205,10 +205,8 @@ def update(i):
         
     r_vir_sc_circ.set_radius(R_vir_sc)
 
-    ax1.set_title(r'$4 ~R_{\rm{vir}}(z=0)$' + f" = {slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick slice in halo centric stack of {metadict['N_stack']}")
-
     
-    fig1.suptitle(f"Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f};\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.2e},{M_vir_range[1]:.2e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
+    ax1.set_title(f"Density at z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in {slice_thickness:.3f} {r'$h^{-1}$':s} Mpc thick spatial slice averaged around {metadict['N_stack']} halos, \n selected with {args.M_range[0]:.2g} {mass_unit:s} < {M_vir_str:s} < {args.M_range[1]:.2g} {mass_unit:s} and {args.Gam_range[0]:.2g} < {Gamma_latex:s} < {args.Gam_range[1]:.2g} at z=0 ")
 
 
 anim = matplotlib.animation.FuncAnimation(fig1, update, frames=range(6,args.tree_root+1), interval=500)
@@ -232,10 +230,19 @@ with open( os.path.join(metadir, f'meta_{i:03d}_1by{args.downsample:d}_{halo_sel
 snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
 
 
+phase_space_1D_ar = np.load( os.path.join(phasedir, f'phase-space_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}.npy') )
+phase_space_1D_ar_plt = phase_space_1D_ar.T*snap.mass_table[1]*1e7
+# phase_space_1D_ar_plt_flat = phase_space_1D_ar_plt.flatten()
+# phase_space_1D_ar_plt_flat = phase_space_1D_ar_plt[phase_space_1D_ar_plt!=0]
+
 fig1, ax1 = plt.subplots(figsize=(12,7.5))
-im1 = ax1.imshow(phase_space_1D.T*snap.mass_table[1]*1e7, norm=LogNorm(), interpolation='quadric', extent=[0,metadict['ps_r_max_vir'],-metadict['ps_vr_max_vir'],metadict['ps_vr_max_vir']], aspect='auto')
+cmap = plt.cm.nipy_spectral
+# cmap.set_under()
+cmap.set_bad(color='black')
+im1 = ax1.imshow(phase_space_1D_ar_plt, norm=LogNorm(*np.percentile(phase_space_1D_ar_plt[phase_space_1D_ar_plt!=0], q=(.01,98)) ), interpolation='antialiased', extent=[0,metadict['ps_r_max_vir'],-metadict['ps_vr_max_vir'],metadict['ps_vr_max_vir']], aspect='auto', cmap=cmap)
 # plt.xlim(0,10)
 cb1 = fig1.colorbar(im1, ax=ax1)
+ax1.hlines(0, 0,3, color='black')
 ax1.set_xlim(0,3)
 # ax1.set_xlabel(r'Radius in units of $~R_{\rm{vir}}(z=0)$' + f" = {metadict['R_vir_root']:.3f} {r'$h^{-1}$':s} Mpc")
 # ax1.set_ylabel(r'Peculiar velocity in units of $~v_{\rm{vir}}(z=0)$' + f" = {metadict['v_vir_root']:.3f} km/s")
@@ -243,9 +250,9 @@ ax1.set_xlim(0,3)
 cb1.set_label(r'$M_{\odot}$ / (km/s) / (kpc)')
 ax1.set_xlabel(r'Distance from halo centre in units of $~R_{\rm{vir}}(z=0)$' + f" = {metadict['R_vir_root']:.3f} {r'$h^{-1}$':s} Mpc")
 ax1.set_ylabel(r'Peculiar velocity radially away from halo in units of $~v_{\rm{vir}}(z=0)$' + f" = {metadict['v_vir_root']:.3f} km/s")
-ax1.set_title(f"Radial phase space density - averaged over {metadict['N_stack']} halos")
+# fig1.suptitle(f"Radial phase space density - averaged over {metadict['N_stack']} halos")
 
-fig1.suptitle(f"Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f};\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.1e},{M_vir_range[1]:.1e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
+ax1.set_title(f"Radial phase space density at z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} averaged around {metadict['N_stack']} halos, \n selected with {args.M_range[0]:.2g} {mass_unit:s} < {M_vir_str:s} < {args.M_range[1]:.2g} {mass_unit:s} and {args.Gam_range[0]:.2g} < {Gamma_latex:s} < {args.Gam_range[1]:.2g} at z=0 ")
 
 
 plt.tight_layout()
@@ -273,9 +280,9 @@ def update_phase_space(i):
     # M_vir = halos_this_step['mvir(10)'].mean()
     # R_vir_sc = ( M_vir / (4/3 * np.pi * Del_vir(Omega(snap.redshift, snap.Omega_m_0)) * mean_dens_comoving) )**(1/3)
 
-    ax1.set_title(f"Radial phase space density - averaged over {metadict['N_stack']} halos")    
+    fig1.suptitle(f"Radial phase space density - averaged over {metadict['N_stack']} halos")    
 
-    fig1.suptitle(f"Simulation: {args.simname}, Grid size: {grid_size}, Scheme: {scheme};     Snapshot-{i:03d} at redshift z={snap.redshift:.4f};\n Halos selected by mass at redshift 0 in [{M_vir_range[0]:.1e},{M_vir_range[1]:.1e}] {mass_unit:s} with median {M_vir_median:.2e} {mass_unit:s}")
+    ax1.set_title(f"Radial phase space density at z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} averaged around {metadict['N_stack']} halos, \n selected with {args.M_range[0]:.2g} {mass_unit:s} < {M_vir_str:s} < {args.M_range[1]:.2g} {mass_unit:s} and {args.Gam_range[0]:.2g} < {Gamma_latex:s} < {args.Gam_range[1]:.2g} at z=0 ")
 
 
 
