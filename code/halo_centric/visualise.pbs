@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l walltime=01:00:00
-#PBS -l select=4:ncpus=12:mem=50GB
+#PBS -l select=1:ncpus=6:mem=100GB
 #PBS -N job-visualise_halo_history
 #PBS -m abe
 #PBS -M premv@iucaa.in
@@ -10,4 +10,5 @@ source ~/.bashrc
 conda activate conforg
 ### python39forge --version
 ### parallel --sshloginfile $PBS_NODEFILE  -j 3 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --light_snaps {4} --M_around {1} --simname bdm_zs1e5f0.51024 --downsample {3} --align {2} --snap_i {5}" :::  2e11 3e12 1e14 ::: 0 1 ::: 8 ::: 0 ::: 150
-parallel --sshloginfile $PBS_NODEFILE  -j 8 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --snap_i  {1} --M_range {2} {3} --Gam_range {4} {5} --simname bdm_cdm1024 --downsample {6} --align {7} --light_snaps {8}"  ::: {50..200..50} ::: 4.9e11 2.9e12 :::+ 5.1e11 3.1e12 ::: 0.5 2  :::+ 1 3 ::: 1 ::: 0 1 ::: 1
+parallel --sshloginfile $PBS_NODEFILE  -j 6 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --snap_i  {1} --M_range {2} {3} --Gam_range {4} {5} --simname bdm_cdm1024 --downsample {6} --align {7} --light_snaps {8}"  ::: {50..200..50} ::: 4.5e11 2.5e12 3e13 :::+ 5.5e11 3.5e12 9e13 ::: 0 1 :::+ 0.5 4 ::: 1 ::: 0 1 ::: 1
+parallel --sshloginfile $PBS_NODEFILE  -j 6 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python visualise.py --snap_i  {1} --M_range {2} {3} --Gam_range {4} {5} --simname bdm_cdm1024 --downsample {6} --align {7} --light_snaps {8}"  ::: 200 ::: 4.5e11 2.5e12 3e13 :::+ 5.5e11 3.5e12 9e13 ::: 0 1 :::+ 0.5 4 ::: 1 ::: 0 1 ::: 0
