@@ -150,7 +150,7 @@ L_cube_focus = np.sqrt(3) * L_cube * (1+1e-2)
 
 slice_thickness = 4*R_vir_root
 
-ps_r_max_vir = 8
+ps_r_max_vir = 5
 ps_r_max = ps_r_max_vir * R_vir_root
 
 ps_vr_max_vir = 3
