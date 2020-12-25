@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l walltime=10:00:00
-#PBS -l select=30:ncpus=9:mem=370GB
+#PBS -l walltime=20:00:00
+#PBS -l select=40:ncpus=9:mem=370GB
 #PBS -N job-halo_env
 #PBS -m abe
 #PBS -M premv@iucaa.in
@@ -10,6 +10,6 @@ cd $PBS_O_WORKDIR; conda activate conforg
 echo Hello > hello.txt
 bash ../library/pm_tools/compile_module.sh
 echo 'C++ code has been recompiled'
-parallel --sshloginfile $PBS_NODEFILE -j 9 "cd $PBS_O_WORKDIR && conda activate conforg && python ./main.py --simname bdm_cdm1024 --snap_i {1} --M_range {2} {3} --Gam_range {4} {5} --downsample 1 --slice2D --align --noalign --phase_space_1D --phase_space_hist_1D | tee -a out_file1.txt" ::: {1..200} ::: 4.9e11 2.9e12 :::+ 5.1e11 3.1e12 ::: 0.5 2  :::+ 1 3
+parallel --sshloginfile $PBS_NODEFILE -j 9 "cd $PBS_O_WORKDIR && conda activate conforg && python ./main.py --simname bdm_cdm1024 --snap_i {1} --M_range {2} {3} --Gam_range {4} {5} --downsample 1 --slice2D --align --noalign --phase_space_hist_1D | tee -a out_file1.txt" ::: {1..200} ::: 4.5e11 2.5e12 3e13 :::+ 5.5e11 3.5e12 9e13 ::: 0 1 :::+ 0.5 4
 ### parallel --sshloginfile $PBS_NODEFILE -j 16 "cd $PBS_O_WORKDIR && ./run_single.sh"
 ### '--align' --phase_space_hist_1D

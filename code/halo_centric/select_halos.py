@@ -65,7 +65,15 @@ halos_select_mass = halos[halos['mvir(10)'].between(*args.M_range)]
 
 halos_select_mass['Gamma'] = halos_select_mass[f'Acc_Rate_{accr_string:s}']/halos_select_mass['mvir(10)'] * 9.778e9 / snap.Hubble_param
 
+halos_select_mass = halos_select_mass[halos_select_mass['Gamma']>=0]
+
 halos_select_gamma = halos_select_mass[halos_select_mass['Gamma'].between(*args.Gam_range)]
+
+print('\n \n', args.M_range, halos_select_mass.shape, args.Gam_range, halos_select_gamma.shape)
+print(halos_select_mass['Gamma'].quantile([i/20 for i in range(21)]))
+
+# pdb.set_trace()
+# sys.exit(0)
 
 # halos['diff_bin'] = np.fabs(np.log10(halos['mvir(10)']) - np.log10(args.M_around))
 

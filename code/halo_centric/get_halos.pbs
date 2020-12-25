@@ -11,4 +11,4 @@ cd $PBS_O_WORKDIR; conda activate conforg
 ###    echo Mass &
 ###    python get_halo_list.py --M_around Mass --max_halos 500 &
 ###done
-parallel -j 4 "source ~/.bashrc && conda activate conforg; python select_halos.py --simname {1} --M_range {2} {3} --Gam_range {4} {5} --max_halos 150" ::: bdm_cdm1024 bdm_zs1e5f0.51024 ::: 4.9e11 2.9e12 :::+ 5.1e11 3.1e12 ::: 0.5 2  :::+ 1 3
+parallel -j 6 "source ~/.bashrc && conda activate conforg; python select_halos.py --simname {1} --M_range {2} {3} --Gam_range {4} {5} --max_halos 1000" ::: bdm_cdm1024 bdm_zs1e5f0.51024 ::: 4.5e11 2.5e12 3e13 :::+ 5.5e11 3.5e12 9e13 ::: 0 1 :::+ 0.5 4
