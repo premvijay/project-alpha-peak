@@ -177,9 +177,12 @@ plt.legend()
 plt.tight_layout()
 
 if save_delta:
-    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.pdf'))
-    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.png'))
-    fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.svg'))
+    if not args.light_snaps:
+        fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.svg'))
+        fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.png'))
+    else:
+        fig1.savefig(os.path.join(plotsdir, f'single_snapshot{align_str}_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.pdf'))
+  
 
 def update(i):
     print(i, 'starting')
@@ -239,7 +242,7 @@ fig1, ax1 = plt.subplots(figsize=(12,7.5))
 cmap = plt.cm.nipy_spectral
 # cmap.set_under()
 cmap.set_bad(color='black')
-im1 = ax1.imshow(phase_space_1D_ar_plt, norm=LogNorm(*np.percentile(phase_space_1D_ar_plt[phase_space_1D_ar_plt!=0], q=(.01,98)) ), interpolation='antialiased', extent=[0,metadict['ps_r_max_vir'],-metadict['ps_vr_max_vir'],metadict['ps_vr_max_vir']], aspect='auto', cmap=cmap)
+im1 = ax1.imshow(phase_space_1D_ar_plt, origin='lower', norm=LogNorm(*np.percentile(phase_space_1D_ar_plt[phase_space_1D_ar_plt!=0], q=(.01,98)) ), interpolation='antialiased', extent=[0,metadict['ps_r_max_vir'],-metadict['ps_vr_max_vir'],metadict['ps_vr_max_vir']], aspect='auto', cmap=cmap)
 # plt.xlim(0,10)
 cb1 = fig1.colorbar(im1, ax=ax1)
 ax1.hlines(0, 0,3, color='black')
@@ -257,10 +260,14 @@ ax1.set_title(f"Radial phase space density at z={f'{snap.redshift:.3f}'.rstrip('
 
 plt.tight_layout()
 
-if save_phasespace:
-    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.pdf'))
-    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.png'))
-    fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.svg'))
+if save_phasespace: 
+    if not args.light_snaps:
+        fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.svg'))
+        fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.png'))
+    else:
+        fig1.savefig(os.path.join(plotsdir, f'phase_space_1D_{i:03d}_1by{args.downsample:d}_{halo_sel_str:s}{theme:s}.pdf'))
+    
+    
 
 def update_phase_space(i):
     print(i, 'starting')
@@ -280,7 +287,7 @@ def update_phase_space(i):
     # M_vir = halos_this_step['mvir(10)'].mean()
     # R_vir_sc = ( M_vir / (4/3 * np.pi * Del_vir(Omega(snap.redshift, snap.Omega_m_0)) * mean_dens_comoving) )**(1/3)
 
-    fig1.suptitle(f"Radial phase space density - averaged over {metadict['N_stack']} halos")    
+    # fig1.suptitle(f"Radial phase space density - averaged over {metadict['N_stack']} halos")    
 
     ax1.set_title(f"Radial phase space density at z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} averaged around {metadict['N_stack']} halos, \n selected with {args.M_range[0]:.2g} {mass_unit:s} < {M_vir_str:s} < {args.M_range[1]:.2g} {mass_unit:s} and {args.Gam_range[0]:.2g} < {Gamma_latex:s} < {args.Gam_range[1]:.2g} at z=0 ")
 
