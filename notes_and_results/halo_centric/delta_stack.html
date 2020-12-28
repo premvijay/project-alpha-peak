@@ -14407,7 +14407,7 @@ h1 {text-align: center;}
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[6]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[11]:</div>
 
 
 
@@ -14444,7 +14444,7 @@ h1 {text-align: center;}
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[7]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[12]:</div>
 
 
 
@@ -14518,7 +14518,7 @@ h1 {text-align: center;}
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[13]:</div>
 
 
 
@@ -14590,7 +14590,7 @@ h1 {text-align: center;}
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[10]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[18]:</div>
 
 
 
@@ -14657,13 +14657,13 @@ h1 {text-align: center;}
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[10]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[20]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&#39;plots_and_anims/bdm_cdm1024_r1/halo_centric_TSC_512/single_snapshot_150_1by1_3.0e+12_1000.svg&#39;</pre>
+<pre>&#39;../plots_and_anims/bdm_cdm1024_r1/halo_centric_TSC_512/single_snapshot_150_1by1_3.0e+12_1000.svg&#39;</pre>
 </div>
 
 </div>
@@ -14701,6 +14701,138 @@ h1 {text-align: center;}
 <pre>ls: cannot access plots_and_anims/bdm_cdm1024_r1/halo_centric_TSC_512/: No such file or directory
 </pre>
 </div>
+</div>
+
+</div>
+
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span> 
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div>
+<div class="jp-Cell-inputWrapper"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="Split-by-accretion-rate">Split by accretion rate<a class="anchor-link" href="#Split-by-accretion-rate">&#182;</a></h1><h2 id="Now-we-fix-the-mass-range-instead-of-the-number-of-halos-and-we-further-split-by-using-accretion-rate-parameter-Gamma">Now we fix the mass range instead of the number of halos and we further split by using accretion rate parameter Gamma<a class="anchor-link" href="#Now-we-fix-the-mass-range-instead-of-the-number-of-halos-and-we-further-split-by-using-accretion-rate-parameter-Gamma">&#182;</a></h2>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs   celltag_defs">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">class</span> <span class="nc">HaloCentricArgs</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simname</span><span class="p">,</span> <span class="n">rundir</span><span class="p">,</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">grid_size</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="n">M_range</span><span class="p">,</span> <span class="n">Gam_range</span><span class="p">,</span> <span class="n">aligned</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rundir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheme</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">M_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gam_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aligned</span> <span class="o">=</span> <span class="n">simname</span><span class="p">,</span> <span class="n">rundir</span><span class="p">,</span> <span class="n">scheme</span><span class="p">,</span> <span class="n">grid_size</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="n">M_range</span><span class="p">,</span> <span class="n">Gam_range</span><span class="p">,</span> <span class="n">aligned</span>
+        <span class="n">halo_sel_str</span> <span class="o">=</span> <span class="s1">&#39;M_</span><span class="si">{0:.2g}</span><span class="s1">to</span><span class="si">{1:.2g}</span><span class="s1">_G_</span><span class="si">{2:.2g}</span><span class="s1">to</span><span class="si">{3:.2g}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">M_range</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Gam_range</span><span class="p">)</span>
+        <span class="n">align_str</span> <span class="o">=</span> <span class="s1">&#39;_unaligned&#39;</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">aligned</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotsdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;plots_and_anims&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">simname</span><span class="si">:</span><span class="s1">s</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rundir</span><span class="si">:</span><span class="s1">s</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;halo_centric_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scheme</span><span class="si">:</span><span class="s1">s</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_size</span><span class="si">:</span><span class="s1">d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vidfile</span> <span class="o">=</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotsdir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;simulation_visualisation</span><span class="si">{</span><span class="n">align_str</span><span class="si">}</span><span class="s1">_1by</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="si">:</span><span class="s1">d</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">halo_sel_str</span><span class="si">:</span><span class="s1">s</span><span class="si">}</span><span class="s1">.mp4&#39;</span><span class="p">)</span>
+<span class="c1">#         self.pdffile =  os.path.join(self.plotsdir, f&#39;single_snapshot{align_str}_{150:03d}_1by{self.downsample:d}_{halo_sel_str:s}.pdf&#39;) </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pngfile</span> <span class="o">=</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotsdir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;single_snapshot</span><span class="si">{</span><span class="n">align_str</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="mi">150</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">_1by</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="si">:</span><span class="s1">d</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">halo_sel_str</span><span class="si">:</span><span class="s1">s</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">svgfile</span> <span class="o">=</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotsdir</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;single_snapshot</span><span class="si">{</span><span class="n">align_str</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="mi">150</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">_1by</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="si">:</span><span class="s1">d</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">halo_sel_str</span><span class="si">:</span><span class="s1">s</span><span class="si">}</span><span class="s1">.svg&#39;</span><span class="p">)</span> 
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea">
+
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+     <div class="CodeMirror cm-s-jupyter">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">args1</span> <span class="o">=</span> <span class="n">HaloCentricArgs</span><span class="p">(</span><span class="s1">&#39;bdm_cdm1024&#39;</span><span class="p">,</span> <span class="s1">&#39;r1&#39;</span><span class="p">,</span> <span class="s1">&#39;TSC&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mf">2.5e12</span><span class="p">,</span> <span class="mf">3.5e12</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.5</span><span class="p">),</span> <span class="n">aligned</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">args2</span> <span class="o">=</span> <span class="n">HaloCentricArgs</span><span class="p">(</span><span class="s1">&#39;bdm_cdm1024&#39;</span><span class="p">,</span> <span class="s1">&#39;r1&#39;</span><span class="p">,</span> <span class="s1">&#39;TSC&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mf">2.5e12</span><span class="p">,</span> <span class="mf">3.5e12</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">aligned</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">show_videos_in_row</span><span class="p">(</span><span class="n">args1</span><span class="o">.</span><span class="n">vidfile</span><span class="p">,</span> <span class="n">args2</span><span class="o">.</span><span class="n">vidfile</span><span class="p">,</span> <span class="s2">&quot;Non-accreting halos&quot;</span><span class="p">,</span> <span class="s2">&quot;Accreting halos&quot;</span><span class="p">)</span>
+</pre></div>
+
+     </div>
+</div>
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+
+<div class="jp-OutputArea-child">
+
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[25]:</div>
+
+
+
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+
+<div id="videoal">
+    <div class="video">
+        <h1> Non-accreting halos</h1>
+        <video src=../plots_and_anims/bdm_cdm1024_r1/halo_centric_TSC_512/simulation_visualisation_1by1_M_2.5e+12to3.5e+12_G_0to0.5.mp4  frameborder="4" controls>  </video>
+    </div>
+    <div class="video">
+        <h1> Accreting halos</h1>
+        <video src=../plots_and_anims/bdm_cdm1024_r1/halo_centric_TSC_512/simulation_visualisation_1by1_M_2.5e+12to3.5e+12_G_1to4.mp4  frameborder="4" controls>  </video>
+    </div>
+</div>
+
+</div>
+
 </div>
 
 </div>
