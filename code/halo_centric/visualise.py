@@ -58,7 +58,7 @@ halo_sel_str = 'M_{0:.2g}to{1:.2g}_G_{2:.2g}to{3:.2g}'.format(*args.M_range, *ar
 if args.light_snaps:
     theme = '_light'
     plt.style.use('default')
-    plt.set_cmap('nipy_spectral')
+    plt.set_cmap('Spectral_r')
 else:
     theme = ''
     plt.style.use('dark_background')
@@ -239,7 +239,7 @@ phase_space_1D_ar_plt = phase_space_1D_ar.T*snap.mass_table[1]*1e7
 # phase_space_1D_ar_plt_flat = phase_space_1D_ar_plt[phase_space_1D_ar_plt!=0]
 
 fig1, ax1 = plt.subplots(figsize=(12,7.5))
-cmap = plt.cm.nipy_spectral
+cmap = plt.cm.Spectral_r
 # cmap.set_under()
 cmap.set_bad(color='black')
 im1 = ax1.imshow(phase_space_1D_ar_plt, origin='lower', norm=LogNorm(*np.percentile(phase_space_1D_ar_plt[phase_space_1D_ar_plt!=0], q=(.01,98)) ), interpolation='antialiased', extent=[0,metadict['ps_r_max_vir'],-metadict['ps_vr_max_vir'],metadict['ps_vr_max_vir']], aspect='auto', cmap=cmap)
