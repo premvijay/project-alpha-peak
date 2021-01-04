@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('--simname', type=str, default='bdm_cdm1024', help='Directory name containing the saved data')
 parser.add_argument('--cosmo', type=str, default='P18', help='cosmology parameters data from')
-parser.add_argument('--rundir', type=str, default='r1',
+parser.add_argument('--rundirs', type=str, default='r1', nargs='+',
                 help='Directory name containing the snapshot binaries')
 
 parser.add_argument('--plots_into', type=str, default='/mnt/home/student/cprem/project-alpha-peak/notes_and_results/plots_and_anims')
@@ -34,9 +34,9 @@ parser.add_argument('--light_snaps', type=int, default=1, help='save white bg im
 args = parser.parse_args()
 
 grid_size = 512
-scheme = 'TSC'
+scheme = 'CIC'
 # rundir = 'r1'
-interlaced = True
+interlaced = False
 
 inlcd_str = '_interlaced' if interlaced==True else ''
 
@@ -54,10 +54,13 @@ else:
 schemes = ['NGP', 'CIC', 'TSC']
 p = schemes.index(scheme) + 1
 
-plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{args.rundir:s}', f'full_box')
+rundir = args.rundirs[0]
+rundir_str = rundir + '-' + args.rundirs[-1] if len(args.rundirs)>1 else rundir
+
+plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{rundir_str:s}', f'full_box')
 os.makedirs(plotsdir, exist_ok=True)
 
-simdir = os.path.join('/scratch/aseem/sims', args.simname, args.rundir)
+simdir = os.path.join('/scratch/aseem/sims', args.simname, rundir)
 
 
 # cosmology = 'P18' if args.simname=='bdm_cdm1024' else 'WMAP7'
@@ -103,9 +106,10 @@ def darker(color): return adjust_lightness(color, 0.7)
 
 # transfer_df = pd.read_csv(transfer_func_file, sep='\s+',header=None)
 
-i_list = list(range(50,201,50))
+# i_list = list(range(50,201,50))
+i_list = [0,1]
 
-snap = Snapshot(os.path.join(simdir, f'snapshot_{200:03d}.0'))
+snap = Snapshot(os.path.join(simdir, f'snapshot_{0:03d}.0'))
 
 box_size = snap.box_size
 k_nyq = np.pi * grid_size / snap.box_size
@@ -148,11 +152,6 @@ plt.rcParams['lines.linewidth'] = 1
 
 
 for index, i in enumerate(i_list[::-1]):
-    snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
-
-    savesdir = os.path.join('/scratch/cprem/sims', args.simname, args.rundir, 'global', scheme, '{0:d}'.format(grid_size))
-    print(savesdir)
-
     color=next(ax2._get_lines.prop_cycler)['color']
     # lightcolor = adjust_lightness(color, 0.5)
     # darkcolor = adjust_lightness(color, 2)
@@ -181,15 +180,11 @@ for index, i in enumerate(i_list[::-1]):
     print(vars(pk_fit))
     ax2.plot(kh_camb_nonlin, pk_fit.P(kh_camb_nonlin), linestyle='solid', color=darker(color), zorder=2)
 
-    Pkdir = os.path.join(savesdir,'power_spectrum')
+    # Pkdir = os.path.join(savesdir,'power_spectrum')
     # infodir = os.path.join(savesdir,'info')
     
-    power_spec = pd.read_csv(os.path.join(Pkdir, 'Pk_{0:03d}.csv'.format(i)), sep='\t', dtype='float64')
-    power_spec.columns = ['k', 'Pk']
-
-    if interlaced:
-        power_spec_inlcd = pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64')
-        power_spec_inlcd.columns = ['k', 'Pk']
+    # power_spec = pd.read_csv(os.path.join(Pkdir, 'Pk_{0:03d}.csv'.format(i)), sep='\t', dtype='float64')
+    # power_spec.columns = ['k', 'Pk']
 
     lin_bin = np.linspace(np.sqrt(k_start*k_nyq),k_nyq, 30)
     log_bin = np.logspace(np.log10(k_start),np.log10(k_nyq), 25)
@@ -200,15 +195,37 @@ for index, i in enumerate(i_list[::-1]):
 
     # power_spec_grouped1 = power_spec.groupby(pd.cut(power_spec['k'], bins=lin_bin)).mean()
     # ax2.plot(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, linestyle='dashed', label=f"{scheme:s} scheme without interlacing")[0]
+    
+    # if interlaced:
+    
+    power_spec_allrealz = None
 
-    if interlaced:
-        power_spec_inlcd_grouped1 = power_spec_inlcd.groupby(pd.cut(power_spec_inlcd['k'], bins=merge_bin)).mean()
-        power_spec_inlcd_grouped1['W_correct'] = np.sinc(power_spec_inlcd_grouped1['k']/(2*k_nyq))**(2*p+1)
-        ax2.plot(power_spec_inlcd_grouped1['k'],power_spec_inlcd_grouped1['Pk']/ power_spec_inlcd_grouped1['W_correct'], color=color, linestyle='dashed', label=f"z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in snapshot-{i:03d}")[0]
-        ax2.scatter(power_spec_inlcd_grouped1['k'],power_spec_inlcd_grouped1['Pk']/ power_spec_inlcd_grouped1['W_correct'], color=color, s=4)
+    for rundir in args.rundirs:
+        simdir = os.path.join('/scratch/aseem/sims', args.simname, rundir)
+        snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
+        savesdir = os.path.join('/scratch/cprem/sims', args.simname, rundir, 'global', scheme, '{0:d}'.format(grid_size))
+        print(savesdir)
+        Pkdir = os.path.join(savesdir,'power_spectrum')
 
-    power_spec_existing = pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
-    power_spec_existing.plot('k','pk', loglog=True, ax=ax2, color=lighter(color), linestyle='dashed', label='', legend=False)
+        # power_spec = pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64', columns=['k', 'Pk'])
+        # power_spec.columns = ['k', 'Pk']
+        
+        if power_spec_allrealz is None:
+            power_spec_allrealz = pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64', names=['k', 'Pk'], header=0)
+            power_spec_existing = pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
+        else:
+            power_spec_allrealz.append( pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64', names=['k', 'Pk'], header=0) )
+            power_spec_existing.append( pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross']) )
+
+
+    power_spec_grouped1 = power_spec_allrealz.groupby(pd.cut(power_spec_allrealz['k'], bins=merge_bin)).mean()
+    win_correct_power = 2*p+1 if interlaced else 2*p
+    power_spec_grouped1['Pk'] /= np.sinc(power_spec_grouped1['k']/(2*k_nyq))**(win_correct_power)
+    ax2.plot(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, linestyle='dashed', label=f"z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in snapshot-{i:03d}")[0]
+    ax2.scatter(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, s=4)
+
+    
+    power_spec_existing.groupby('k').mean().reset_index().plot('k','pk', loglog=True, ax=ax2, color=lighter(color), linestyle='dashed', label='', legend=False)
 
 ax2.plot([],[], ' ', label=f"From GADGET simulation")
 ax2.plot([],[], linestyle='dashed', color='gray', label=f"  our code {scheme}-{grid_size:d}")
