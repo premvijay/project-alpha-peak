@@ -118,10 +118,11 @@ class Snapshot():
 def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10):
     pos_list = []
     np.random.seed(rand_seed)
+    import os
 
     file_number = 0
     while True:
-        filename_suffix = '.{0:d}'.format(file_number)
+        filename_suffix = '.{0:d}'.format(file_number) if not os.path.exists(snapshot_filepath_prefix) else ''
         # filepath = os.path.join(binary_files_dir, filename)
         filepath = snapshot_filepath_prefix + filename_suffix
         print(filepath)
