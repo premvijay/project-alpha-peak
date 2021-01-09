@@ -22,19 +22,19 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('--simname', type=str, default='bdm_cdm1024', help='Directory name containing the saved data')
 parser.add_argument('--cosmo', type=str, default='P18', help='cosmology parameters data from')
-parser.add_argument('--rundirs', type=str, default='r1', nargs='+',
+parser.add_argument('--rundirs', type=str, default='r1',
                 help='Directory name containing the snapshot binaries')
 
 parser.add_argument('--plots_into', type=str, default='/mnt/home/student/cprem/project-alpha-peak/notes_and_results/plots_and_anims')
 
-parser.add_argument('--snap_i', type=int, default=200, help='Snapshot index number')
+parser.add_argument('--snap_i_list', type=str, default=list(range(50,201,50)), help='Snapshot index number')
 
 parser.add_argument('--light_snaps', type=int, default=1, help='save white bg images for pdf notes')
 
 args = parser.parse_args()
 
 grid_size = 512
-scheme = 'CIC'
+scheme = 'TSC'
 # rundir = 'r1'
 interlaced = False
 
@@ -54,8 +54,11 @@ else:
 schemes = ['NGP', 'CIC', 'TSC']
 p = schemes.index(scheme) + 1
 
-rundir = args.rundirs[0]
-rundir_str = rundir + '-' + args.rundirs[-1] if len(args.rundirs)>1 else rundir
+rundirs = args.rundirs.split(' ')
+
+rundir = rundirs[0]
+rundir_str = rundir.replace('/', '_') + '-' + rundirs[-1].split('/')[-1] if len(rundirs)>1 else rundir.replace('/', '_')
+
 
 plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{rundir_str:s}', f'full_box')
 os.makedirs(plotsdir, exist_ok=True)
@@ -107,7 +110,10 @@ def darker(color): return adjust_lightness(color, 0.7)
 # transfer_df = pd.read_csv(transfer_func_file, sep='\s+',header=None)
 
 # i_list = list(range(50,201,50))
-i_list = [0,1]
+# i_list = [0,1]
+
+i_list = [int(x) for x in args.snap_i_list.split(',')]
+i_list.sort()
 
 snap = Snapshot(os.path.join(simdir, f'snapshot_{0:03d}.0'))
 
@@ -200,7 +206,7 @@ for index, i in enumerate(i_list[::-1]):
     
     power_spec_allrealz = None
 
-    for rundir in args.rundirs:
+    for rundir in rundirs:
         simdir = os.path.join('/scratch/aseem/sims', args.simname, rundir)
         snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
         savesdir = os.path.join('/scratch/cprem/sims', args.simname, rundir, 'global', scheme, '{0:d}'.format(grid_size))
@@ -215,7 +221,10 @@ for index, i in enumerate(i_list[::-1]):
             power_spec_existing = pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
         else:
             power_spec_allrealz.append( pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64', names=['k', 'Pk'], header=0) )
-            power_spec_existing.append( pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross']) )
+            try:
+                power_spec_existing.append( pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross']) )
+            except:
+                print('not existing')
 
 
     power_spec_grouped1 = power_spec_allrealz.groupby(pd.cut(power_spec_allrealz['k'], bins=merge_bin)).mean()
