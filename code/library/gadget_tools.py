@@ -122,9 +122,12 @@ def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10
 
     file_number = 0
     while True:
-        filename_suffix = '.{0:d}'.format(file_number) if not os.path.exists(snapshot_filepath_prefix) else ''
-        # filepath = os.path.join(binary_files_dir, filename)
-        filepath = snapshot_filepath_prefix + filename_suffix
+        filepath = snapshot_filepath_prefix + ''
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.hdf5'
+
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.{0:d}'.format(file_number)
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.{0:d}'.format(file_number) + '.hdf5'
+    
         print(filepath)
 
         snap = Snapshot()
@@ -157,9 +160,15 @@ def read_velocities_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=1
 
     file_number = 0
     while True:
-        filename_suffix = '.{0:d}'.format(file_number)
+        filepath = snapshot_filepath_prefix + ''
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.hdf5'
+
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.{0:d}'.format(file_number)
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.{0:d}'.format(file_number) + '.hdf5'
+
+        # filename_suffix = '.{0:d}'.format(file_number) if not os.path.exists(snapshot_filepath_prefix) else ''
         # filepath = os.path.join(binary_files_dir, filename)
-        filepath = snapshot_filepath_prefix + filename_suffix
+        # filepath = snapshot_filepath_prefix + filename_suffix
         print(filepath)
 
         snap = Snapshot()
