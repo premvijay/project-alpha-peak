@@ -234,14 +234,23 @@ for index, i in enumerate(i_list[::-1]):
         
         if power_spec_allrealz is None:
             power_spec_allrealz = pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64', names=['k', 'Pk'], header=0)
-            power_spec_existing = pd.read_csv(os.path.join(snapdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
+            power_spec_existing = pd.read_csv('/scratch/aseem/sims/bdm_cdm1024/r1/Pk_200.txt',comment='#', sep='\t',names=['k','pk','ph','pcross'])
+            power_spec_folding = pd.read_csv(os.path.join(snapdir,f"powerspecs/powerspec_{i:03d}.txt"), sep='\s+', usecols=[0,1], names=['k', 'Delk'], skiprows=5)
         else:
             power_spec_allrealz.append( pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64', names=['k', 'Pk'], header=0) )
             try:
-                power_spec_existing.append( pd.read_csv(os.path.join(snapdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross']) )
+                power_spec_existing.append( pd.read_csv('/scratch/aseem/sims/bdm_cdm1024/r1/Pk_200.txt',comment='#', sep='\t',names=['k','pk','ph','pcross']) )
             except:
                 print('not existing')
+            power_spec_folding.append( pd.read_csv(os.path.join(snapdir,f"powerspecs/powerspec_{i:03d}.txt"), sep='\s+', usecols=[0,1], names=['k', 'Delk'], skiprows=5) )
+            
 
+    power_spec_folding.sort_values('k', inplace=True)
+    power_spec_folding = power_spec_folding[power_spec_folding['k'].between(1e-3,1e2)]
+    power_spec_folding_grouped1 = power_spec_folding.groupby(pd.cut(power_spec_folding['k'], bins=merge_bin)).mean()
+    power_spec_folding_grouped1['pk'] = power_spec_folding_grouped1['Delk']*power_spec_folding_grouped1['k']**-3*2*np.pi**2
+
+    print(power_spec_folding_grouped1)
 
     power_spec_grouped1 = power_spec_allrealz.groupby(pd.cut(power_spec_allrealz['k'], bins=merge_bin)).mean()
     win_correct_power = 2*p+1 if interlaced else 2*p
@@ -252,9 +261,12 @@ for index, i in enumerate(i_list[::-1]):
     
     power_spec_existing.groupby('k').mean().reset_index().plot('k','pk', loglog=True, ax=ax2, color=lighter(color), linestyle='dashed', label='', legend=False)
 
+    power_spec_folding_grouped1.plot('k', 'pk', loglog=True, color=lighter(color), linestyle='dashdot', ax=ax2)
+
 ax2.plot([],[], ' ', label=f"From GADGET simulation")
 ax2.plot([],[], linestyle='dashed', color='gray', label=f"  our code {scheme}-{grid_size:d}")
 ax2.plot([],[], linestyle='dashed', color=lighter('gray'), label=f"  for reference")
+ax2.plot([],[], linestyle='dashdot', color=lighter('gray'), label=f"  GADGET folding")
 ax2.plot([],[], ' ', label=f"Halofit model")
 ax2.plot([],[], linestyle='solid', color=darker('gray'), label='  Takahashi, et al. 2012')
 ax2.plot([],[], linestyle='solid', color=lighter('gray'), label='  CAMB non-linear')
