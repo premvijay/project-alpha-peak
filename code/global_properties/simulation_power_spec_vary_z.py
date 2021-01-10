@@ -20,6 +20,8 @@ parser = argparse.ArgumentParser(
     description='Density field evolution from Gadget simulation.',
     usage= 'python ./visualize_simulation.py')
 
+parser.add_argument('--simdir', default='/scratch/aseem/sims/', type=str, help='Directory path for all simulations')
+
 parser.add_argument('--simname', type=str, default='bdm_cdm1024', help='Directory name containing the saved data')
 parser.add_argument('--cosmo', type=str, default='P18', help='cosmology parameters data from')
 parser.add_argument('--rundirs', type=str, default='r1',
@@ -63,7 +65,21 @@ rundir_str = rundir.replace('/', '_') + '-' + rundirs[-1].split('/')[-1] if len(
 plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{rundir_str:s}', f'full_box')
 os.makedirs(plotsdir, exist_ok=True)
 
-simdir = os.path.join('/scratch/aseem/sims', args.simname, rundir)
+snapdir = os.path.join(args.simdir, args.simname, rundir)
+
+def snapfilen_prefix(snapdirectory, snap_i):
+    if os.path.exists(os.path.join(snapdir, f'snapdir_{snap_i:03d}')):
+        return os.path.join(snapdir, 'snapdir_{0:03d}/snapshot_{0:03d}'.format(snap_i))
+    else:
+        return os.path.join(snapdir, 'snapshot_{0:03d}'.format(snap_i))
+
+def snapfilen(snapdirectory, snap_i):
+    snapfilen_prefix_i = snapfilen_prefix(snapdirectory, snap_i)
+    if os.path.exists(snapfilen_prefix_i):
+        return snapfilen_prefix_i
+    else:
+        return snapfilen_prefix_i + '.0'
+
 
 
 # cosmology = 'P18' if args.simname=='bdm_cdm1024' else 'WMAP7'
@@ -115,7 +131,7 @@ def darker(color): return adjust_lightness(color, 0.7)
 i_list = [int(x) for x in args.snap_i_list.split(',')]
 i_list.sort()
 
-snap = Snapshot(os.path.join(simdir, f'snapshot_{0:03d}.0'))
+snap = Snapshot(snapfilen(snapdir, 0))
 
 box_size = snap.box_size
 k_nyq = np.pi * grid_size / snap.box_size
@@ -123,7 +139,7 @@ k_start = 2* np.pi / snap.box_size
 
 redshifts=[]
 for i in i_list:
-    snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
+    snap = Snapshot(snapfilen(snapdir, i))
     redshifts.append(snap.redshift)
 
 
@@ -207,8 +223,8 @@ for index, i in enumerate(i_list[::-1]):
     power_spec_allrealz = None
 
     for rundir in rundirs:
-        simdir = os.path.join('/scratch/aseem/sims', args.simname, rundir)
-        snap = Snapshot(os.path.join(simdir, f'snapshot_{i:03d}.0'))
+        snapdir = os.path.join(args.simdir, args.simname, rundir)
+        snap = Snapshot(snapfilen(snapdir, i))
         savesdir = os.path.join('/scratch/cprem/sims', args.simname, rundir, 'global', scheme, '{0:d}'.format(grid_size))
         print(savesdir)
         Pkdir = os.path.join(savesdir,'power_spectrum')
@@ -218,11 +234,11 @@ for index, i in enumerate(i_list[::-1]):
         
         if power_spec_allrealz is None:
             power_spec_allrealz = pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64', names=['k', 'Pk'], header=0)
-            power_spec_existing = pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
+            power_spec_existing = pd.read_csv(os.path.join(snapdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross'])
         else:
             power_spec_allrealz.append( pd.read_csv(os.path.join(Pkdir, 'Pk{1}_{0:03d}.csv'.format(i,inlcd_str)), sep='\t', dtype='float64', names=['k', 'Pk'], header=0) )
             try:
-                power_spec_existing.append( pd.read_csv(os.path.join(simdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross']) )
+                power_spec_existing.append( pd.read_csv(os.path.join(snapdir,f"Pk_{i:03d}.txt"),comment='#', sep='\t',names=['k','pk','ph','pcross']) )
             except:
                 print('not existing')
 

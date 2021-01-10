@@ -32,7 +32,7 @@ parser.add_argument('--interlace', action='store_true', help='Do interlacing for
 
 parser.add_argument('--slice2D', action='store_true', help='Compute and save 2D projected slices')
 
-parser.add_argument('--outdir', type=str, help='Directory to save the requested output')
+parser.add_argument('--outdir', type=str, default='/scratch/cprem/sims/', help='Directory to save the requested output')
 
 args = parser.parse_args()
 
@@ -45,8 +45,17 @@ print('Hostname is', socket.gethostname() )
 t_now = time()
 print('\n Starting to read snapshots binaries')
 
-filename_prefix = 'snapshot_{0:03d}'.format(args.snap_i)
-filepath_prefix = os.path.join(snapdir, filename_prefix)
+def snapfilen_prefix(snapdirectory, snap_i):
+    if os.path.exists(os.path.join(snapdir, f'snapdir_{snap_i:03d}')):
+        return os.path.join(snapdir, 'snapdir_{0:03d}/snapshot_{0:03d}'.format(snap_i))
+    else:
+        return os.path.join(snapdir, 'snapshot_{0:03d}'.format(snap_i))
+
+filepath_prefix = snapfilen_prefix(snapdir, args.snap_i)
+
+
+# filename_prefix = 'snapdir_{0:03d}/snapshot_{0:03d}'.format(args.snap_i)
+# filepath_prefix = os.path.join(snapdir, filename_prefix)
 
 posd = read_positions_all_files(filepath_prefix)
 
@@ -87,7 +96,7 @@ print(t_now-t_bef)
 if args.slice2D:
     # mmhpos = (48.25266, 166.29897, 98.36325) #bdm_cdm
     mmhpos = (48.31351, 166.24753, 98.45503000000001) #bdm_z
-    delta_slice = project_to_slice(delta, snap.box_size, axis=2, around_position=mmhpos, thick=10)
+    delta_slice = project_to_slice(delta, snap.box_size, axis=2, around_position='centre', thick=10)
     slicedir = os.path.join(outdir,'slice2D')
     os.makedirs(slicedir, exist_ok=True)
     np.save(os.path.join(slicedir, 'slice_{0:03d}.npy'.format(args.snap_i) ), delta_slice)
