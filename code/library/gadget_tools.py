@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import gc
 
 class Snapshot():
@@ -15,6 +16,7 @@ class Snapshot():
     def from_binary(self, filename = None, header=True):
         assert type(filename) is str, "This class requires the gadget filename as input"
         self.filename = filename
+        if not os.path.exists(self.filename): self.filename += '.hdf5' 
         self.filetype = 'gadget_binary' if self.filename[-5:]!='.hdf5' else 'gadget_hdf5'
         if header==True:
             self.read_header()
@@ -57,6 +59,9 @@ class Snapshot():
             self.N_prtcl_total    = h5file['Header'].attrs['NumPart_Total']   ## Total number of each particle present in the simulation
             self.num_files        = h5file['Header'].attrs['NumFilesPerSnapshot'] ## Number of files in each snapshot
             self.box_size         = h5file['Header'].attrs['BoxSize']  ## Gives the box size if periodic boundary conditions are used
+            self.Omega_m_0        = h5file['Parameters'].attrs['Omega0']     ## Matter density at z = 0 in the units of critical density
+            self.Omega_Lam_0      = h5file['Parameters'].attrs['OmegaLambda'] ## Vacuum Energy Density at z=0 in the units of critical density
+            self.Hubble_param     = h5file['Parameters'].attrs['HubbleParam'] ## gives the hubble constant in units of 100 kms^-1Mpc^-1  
             self.num_part_types   = h5file['Config'].attrs['NTYPES']
             self.params           = h5file['Parameters'].attrs
         
@@ -118,7 +123,6 @@ class Snapshot():
 def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10):
     pos_list = []
     np.random.seed(rand_seed)
-    import os
 
     file_number = 0
     while True:
