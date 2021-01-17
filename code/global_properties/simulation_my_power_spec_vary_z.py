@@ -152,6 +152,7 @@ pars_camb.set_matter_power(redshifts=redshifts, kmax=10*k_nyq)
 
 #Linear spectra
 pars_camb.NonLinear = model.NonLinear_none
+pars_camb.NonLinearModel.set_params(halofit_version='mead2020')
 results_camb = camb.get_results(pars_camb)
 kh_camb, z_camb, pk_camb = results_camb.get_matter_power_spectrum(minkh=2e-7, maxkh=100, npoints = 5000)
 # s8 = np.array(results.get_sigma8())
@@ -198,7 +199,7 @@ for index, i in enumerate(i_list[::-1]):
 
     pk_fit = halofit.NonLinPowerSpecCDM(Omega(snap.redshift, snap.Omega_m_0))
     pk_fit.set_Del2L_interpolate(k_full, pk_lin)
-    pk_fit.compute_params()
+    pk_fit.compute_params(param_from='takahashi')
     print(vars(pk_fit))
     ax2.plot(kh_camb_nonlin, pk_fit.P(kh_camb_nonlin), linestyle='solid', color=darker(color), zorder=2)
 
@@ -250,7 +251,7 @@ for index, i in enumerate(i_list[::-1]):
     power_spec_folding_grouped1 = power_spec_folding.groupby(pd.cut(power_spec_folding['k'], bins=merge_bin)).mean()
     power_spec_folding_grouped1['pk'] = power_spec_folding_grouped1['Delk']*power_spec_folding_grouped1['k']**-3*2*np.pi**2
 
-    print(power_spec_folding_grouped1)
+    # print(power_spec_folding_grouped1)
 
     power_spec_grouped1 = power_spec_allrealz.groupby(pd.cut(power_spec_allrealz['k'], bins=merge_bin)).mean()
     win_correct_power = 2*p+1 if interlaced else 2*p
@@ -258,10 +259,10 @@ for index, i in enumerate(i_list[::-1]):
     ax2.plot(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, linestyle='dashed', label=f"z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in snapshot-{i:03d}")[0]
     ax2.scatter(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, s=4)
 
-    
-    power_spec_existing.groupby('k').mean().reset_index().plot('k','pk', loglog=True, ax=ax2, color=lighter(color), linestyle='dashed', label='', legend=False)
+    if snap.redshift<1e-5:
+        power_spec_existing.groupby('k').mean().reset_index().plot('k','pk', loglog=True, ax=ax2, color=lighter(color), linestyle='dashed', label='', legend=False)
 
-    power_spec_folding_grouped1.plot('k', 'pk', loglog=True, color=lighter(color), linestyle='dashdot', ax=ax2)
+    power_spec_folding_grouped1.plot('k', 'pk', loglog=True, color=lighter(color), linestyle='dashdot', ax=ax2, label='', legend=False)
 
 ax2.plot([],[], ' ', label=f"From GADGET simulation")
 ax2.plot([],[], linestyle='dashed', color='gray', label=f"  our code {scheme}-{grid_size:d}")
@@ -269,7 +270,7 @@ ax2.plot([],[], linestyle='dashed', color=lighter('gray'), label=f"  for referen
 ax2.plot([],[], linestyle='dashdot', color=lighter('gray'), label=f"  GADGET folding")
 ax2.plot([],[], ' ', label=f"Halofit model")
 ax2.plot([],[], linestyle='solid', color=darker('gray'), label='  Takahashi, et al. 2012')
-ax2.plot([],[], linestyle='solid', color=lighter('gray'), label='  CAMB non-linear')
+ax2.plot([],[], linestyle='solid', color=lighter('gray'), label='  HMcode-2020')
 ax2.plot([],[], ' ', label=f"linear theory")
 ax2.plot([],[], linestyle=(0, (1, 1)), color='gray', label='  CAMB linear')
 
@@ -287,7 +288,7 @@ ax2.grid(True)
 fig1.suptitle(f"Matter power spectrum from {args.simname:s} simulation at different redshifts")
 ax2.legend()
 
-plt.tight_layout()
+# plt.tight_layout()
 
 fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_vary_z_{scheme}{theme:s}.pdf'))
 fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_vary_z_{scheme}{theme:s}.png'))
