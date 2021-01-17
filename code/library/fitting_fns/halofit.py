@@ -47,20 +47,34 @@ class NonLinPowerSpecCDM:
         # d2sig2_dlnR2 = integrate.quad(integ_sig_2, -np.inf, np.inf)
         self.C = - integrate.quad(integ_sig_2, *np.log(self.k_range))[0] + (self.neff+3)**2
 
-    def compute_params(s):
+    def compute_params(s, param_from='takahashi'):
         s.solve_k_sig()
         s.compute_neff()
         s.compute_C()
-        s.a_n = 10**(1.5222 + 2.8553*s.neff + 2.3706*s.neff**2 + 0.9903*s.neff**3 + 0.2250*s.neff**4 - 0.6038*s.C)
-        s.b_n = 10**(-0.5642 + 0.5864*s.neff + 0.5716*s.neff**2 - 1.5474*s.C)
-        s.c_n = 10**(0.3698 + 2.0404*s.neff + 0.8161*s.neff**2 + 0.5869*s.C)
 
-        s.gamma_n = 0.1971 - 0.0843*s.neff + 0.8460*s.C
-        s.alpha_n = abs(6.0835 + 1.3373*s.neff - 0.1959*s.neff**2 - 5.5274*s.C)
-        s.beta_n = 2.0379 - 0.7354*s.neff + 0.3157*s.neff**2 + 1.2490*s.neff**3 + 0.3980*s.neff**4 - 0.1682*s.C 
+        if param_from=='takahashi':
+            s.a_n = 10**(1.5222 + 2.8553*s.neff + 2.3706*s.neff**2 + 0.9903*s.neff**3 + 0.2250*s.neff**4 - 0.6038*s.C)
+            s.b_n = 10**(-0.5642 + 0.5864*s.neff + 0.5716*s.neff**2 - 1.5474*s.C)
+            s.c_n = 10**(0.3698 + 2.0404*s.neff + 0.8161*s.neff**2 + 0.5869*s.C)
 
-        s.mu_n = 0
-        s.nu_n = 10**(5.2105+3.6902*s.neff)
+            s.gamma_n = 0.1971 - 0.0843*s.neff + 0.8460*s.C
+            s.alpha_n = abs(6.0835 + 1.3373*s.neff - 0.1959*s.neff**2 - 5.5274*s.C)
+            s.beta_n = 2.0379 - 0.7354*s.neff + 0.3157*s.neff**2 + 1.2490*s.neff**3 + 0.3980*s.neff**4 - 0.1682*s.C 
+
+            s.mu_n = 0
+            s.nu_n = 10**(5.2105 + 3.6902*s.neff)
+
+        elif param_from=='smith':
+            s.a_n = 10**(1.4861 + 1.8369*s.neff + 1.6762*s.neff**2 + 0.7940*s.neff**3 + 0.1670*s.neff**4 - 0.6206*s.C)
+            s.b_n = 10**(0.9463 + 0.9466*s.neff + 0.3084*s.neff**2 - 0.9400*s.C)
+            s.c_n = 10**(-0.2807 + 0.6669*s.neff + 0.3214*s.neff**2 - 0.0793*s.C)
+
+            s.gamma_n = 0.8649 + 0.2989*s.neff + 0.1631*s.C
+            s.alpha_n = 1.3884 + 0.3700*s.neff - 0.1452*s.neff**2
+            s.beta_n = 0.8291 + 0.9854*s.neff + 0.3401*s.neff**2 
+
+            s.mu_n = 10**(-3.5442 + 0.1908*s.neff)
+            s.nu_n = 10**(0.9589 + 1.2857*s.neff)
 
     def f(self, y): return y/4 + y**2/8
 
