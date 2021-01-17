@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l walltime=30:00:00
+#PBS -l walltime=300:00:00
 #PBS -l select=1:ncpus=4
 #PBS -N jupyter-lab
 #PBS -m abe
