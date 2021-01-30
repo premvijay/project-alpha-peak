@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l walltime=10:00:00
-#PBS -l select=6:ncpus=10:mem=350GB
+#PBS -l select=11:ncpus=10:mem=350GB
 #PBS -N job-density_assignment
 #PBS -m abe
 #PBS -M premv@iucaa.in
@@ -10,5 +10,5 @@ conda activate conforg
 echo Hello > hello.txt
 bash ../library/pm_tools/compile_module.sh
 echo 'C++ code has been recompiled'
-parallel --sshloginfile $PBS_NODEFILE -j 10 "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python ./assign_density.py --simname {2} --rundir r1 --snap_i {3} --scheme {1} --grid_size 512 --Pk --slice2D --simdir /scratch/cprem/sims/ | tee -a out_file1.txt" ::: NGP CIC TSC ::: my-bdm_cdm512_p18 ::: {0..18}
+parallel --sshloginfile $PBS_NODEFILE -j 10 --joblog "${PBS_JOBNAME}.p${PBS_JOBID%.*}" "cd $PBS_O_WORKDIR; source ~/.bashrc; conda activate conforg; python ./assign_density.py --simname {2} --rundir r2 --snap_i {3} --scheme {1} --grid_size 512 --Pk --slice2D --simdir /scratch/cprem/sims/ | tee -a out_file1.txt" ::: CIC TSC ::: my-bdm_cdm512_p18 ::: {0..50}
 ### parallel

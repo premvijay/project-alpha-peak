@@ -256,24 +256,24 @@ for index, i in enumerate(i_list[::-1]):
     power_spec_grouped1 = power_spec_allrealz.groupby(pd.cut(power_spec_allrealz['k'], bins=merge_bin)).mean()
     win_correct_power = 2*p+1 if interlaced else 2*p
     power_spec_grouped1['Pk'] /= np.sinc(power_spec_grouped1['k']/(2*k_nyq))**(win_correct_power)
-    ax2.plot(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, linestyle='dashed', label=f"z={f'{snap.redshift:.3f}'.rstrip('0').rstrip('.'):s} in snapshot-{i:03d}")[0]
+    ax2.plot(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, linestyle='dashed', label=f"z={f'{round(snap.redshift):f}'.rstrip('0').rstrip('.'):s}")[0]
     ax2.scatter(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, s=4)
 
-    if snap.redshift<1e-5:
-        power_spec_existing.groupby('k').mean().reset_index().plot('k','pk', loglog=True, ax=ax2, color=lighter(color), linestyle='dashed', label='', legend=False)
+    # if snap.redshift<1e-5:
+        # power_spec_existing.groupby('k').mean().reset_index().plot('k','pk', loglog=True, ax=ax2, color=lighter(lighter(color)), linestyle='dashed', label='', legend=False)
 
-    power_spec_folding_grouped1.plot('k', 'pk', loglog=True, color=lighter(color), linestyle='dashdot', ax=ax2, label='', legend=False)
+    power_spec_folding_grouped1.plot('k', 'pk', loglog=True, color=lighter(color), linestyle='dashdot', lw=0.8, ax=ax2, label='', legend=False)
 
-ax2.plot([],[], ' ', label=f"From GADGET simulation")
-ax2.plot([],[], linestyle='dashed', color='gray', label=f"  our code {scheme}-{grid_size:d}")
-ax2.plot([],[], linestyle='dashed', color=lighter('gray'), label=f"  for reference")
-ax2.plot([],[], linestyle='dashdot', color=lighter('gray'), label=f"  GADGET folding")
+ax2.plot([],[], ' ', label=f"GADGET-4 simulation")
+ax2.plot([],[], linestyle='dashed', color='gray', label=f"  {scheme}-{grid_size:d} grid")
+ax2.plot([],[], linestyle='dashdot', color=lighter('gray'), label=f"  folding technique")
+# ax2.plot([],[], linestyle='dashed', color=lighter(lighter('gray')), label=f"  for reference")
 ax2.plot([],[], ' ', label=f"Halofit model")
-ax2.plot([],[], linestyle='solid', color=darker('gray'), label='  Takahashi, et al. 2012')
+ax2.plot([],[], linestyle='solid', color=darker('gray'), label='  Takahashi, 2012')
 ax2.plot([],[], linestyle='solid', color=lighter('gray'), label='  HMcode-2020')
-ax2.plot([],[], ' ', label=f"linear theory")
-ax2.plot([],[], linestyle=(0, (1, 1)), color='gray', label='  CAMB linear')
-
+# ax2.plot([],[], ' ', label=f"linear theory")
+ax2.plot([],[], linestyle=(0, (1, 1)), color='gray', label='linear theory')
+# in snapshot-{i:03d}
 # pdb.set_trace()
 
 
@@ -285,10 +285,10 @@ ax2.set_yscale('log')
 ax2.set_xlim(k_start*0.8,1.2*k_nyq)
 ax2.set_ylim(top=1e5, bottom=2e-1)
 ax2.grid(True)
-fig1.suptitle(f"Matter power spectrum from {args.simname:s} simulation at different redshifts")
+ax2.set_title(f"Matter power spectrum at different redshifts")
 ax2.legend()
 
-# plt.tight_layout()
+plt.tight_layout()
 
 fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_vary_z_{scheme}{theme:s}.pdf'))
 fig1.savefig(os.path.join(plotsdir, f'single_snapshot_pk_vary_z_{scheme}{theme:s}.png'))
