@@ -48,8 +48,7 @@ class Snapshot():
             file.seek(256 +4 , 0)
             header_size_end = np.fromfile(file, dtype = np.int32, count =1)[0]
             print ('Header block is read and it contains ', header_size_end, 'bytes.')
-            self.prtcl_types = ["Gas","Halo","Disk",  "Bulge", "Stars", "Bndry"]
-        
+            
         elif self.filetype == 'gadget_hdf5':
             h5file = self.h5py.File(self.filename, 'r')
             self.N_prtcl_thisfile = h5file['Header'].attrs['NumPart_ThisFile']    ## The number of particles of each type present in the file
@@ -64,6 +63,8 @@ class Snapshot():
             self.Hubble_param     = h5file['Parameters'].attrs['HubbleParam'] ## gives the hubble constant in units of 100 kms^-1Mpc^-1  
             self.num_part_types   = h5file['Config'].attrs['NTYPES']
             self.params           = h5file['Parameters'].attrs
+
+        self.prtcl_types = ["Gas","Halo","Disk",  "Bulge", "Stars", "Bndry"]
         
     def positions(self, prtcl_type="Halo",max_prtcl=None):
         if self.filetype == 'gadget_binary':
@@ -87,8 +88,8 @@ class Snapshot():
 
         elif self.filetype == 'gadget_hdf5':
             h5file = self.h5py.File(self.filename, 'r')
-            if prtcl_type=="Halo": 
-                type_num = 1
+            # if prtcl_type=="Halo": 
+            type_num = self.prtcl_types.index(prtcl_type)
             return h5file[f'PartType{type_num:d}']['Coordinates'][:]
 
     def velocities(self, prtcl_type="Halo",max_prtcl=None):
@@ -113,14 +114,14 @@ class Snapshot():
 
         elif self.filetype == 'gadget_hdf5':
             h5file = self.h5py.File(self.filename, 'r')
-            if prtcl_type=="Halo": 
-                type_num = 1
+            # if prtcl_type=="Halo": 
+            type_num = self.prtcl_types.index(prtcl_type)
             return h5file[f'PartType{type_num:d}']['Velocities'][:]
 
 
 
 
-def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10):
+def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10, prtcl_type='Halo'):
     pos_list = []
     np.random.seed(rand_seed)
 
@@ -137,7 +138,7 @@ def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10
         snap = Snapshot()
         snap.from_binary(filepath)
 
-        posd_thisfile = snap.positions(prtcl_type="Halo", max_prtcl=None)
+        posd_thisfile = snap.positions(prtcl_type=prtcl_type, max_prtcl=None)
         if downsample != 1:
             rand_ind = np.random.choice(posd_thisfile.shape[0], size=posd_thisfile.shape[0]//downsample, replace=False)
             # print(snap.N_prtcl_thisfile, downsample, 'n', snap.N_prtcl_thisfile//downsample, rand_ind)
