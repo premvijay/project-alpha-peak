@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l walltime=300:00:00
-#PBS -l select=1:ncpus=4
+#PBS -l select=1:ncpus=8:mem=200GB
 #PBS -N jupyter-lab
 #PBS -m abe
 #PBS -M premv@iucaa.in
@@ -14,13 +14,13 @@ NOTEBOOK_PORT_INT=32961
 NOTEBOOK_PORT_EXT=43445
 
 # setup tunnel between computing and login node
-# ssh -N -f -R $NOTEBOOK_PORT_EXT:localhost:$NOTEBOOK_PORT_INT $PBS_O_HOST
+ssh -Nf -R $NOTEBOOK_PORT_EXT:localhost:$NOTEBOOK_PORT_INT $PBS_O_HOST
 
 jupnode=`hostname`
 
 ### ssh $PBS_O_HOST "screen -d -m ssh -N -f -L pegasus.ac.iucaa.in:$NOTEBOOK_PORT_EXT:$jupnode:$NOTEBOOK_PORT_INT localhost"
 echo "lsof -i tcp:${NOTEBOOK_PORT_EXT} | awk 'NR!=1 {print \$2}' | xargs kill" > tunneljupy.sh
-echo "ssh -N -f -L pegasus.ac.iucaa.in:$NOTEBOOK_PORT_EXT:$jupnode:$NOTEBOOK_PORT_INT localhost" >> tunneljupy.sh
+# echo "ssh -N -f -L pegasus.ac.iucaa.in:$NOTEBOOK_PORT_EXT:$jupnode:$NOTEBOOK_PORT_INT localhost" >> tunneljupy.sh
 
 # launch the notebook
 source ~/.bashrc
@@ -28,5 +28,5 @@ conda activate conforg
 jupyter lab --ip=0.0.0.0 --port=$NOTEBOOK_PORT_INT --no-browser >> notebook.log 2>&1
 # jupyter lab --no-browser --ip=0.0.0.0 --port=8890 >> notebook.log 2>&1
 
-
+pgrep -f "ssh -Nf -R $NOTEBOOK_PORT_EXT" | xargs kill
 # python -m http.server
