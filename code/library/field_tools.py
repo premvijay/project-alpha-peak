@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import widgets, pyplot as plt
 import pandas as pd
 
-def compute_power_spec(FX,box_size, interlace_with_FX=None):
+def compute_power_spec(FX,box_size, interlace_with_FX=None, Win_correct_scheme='CIC', grid_size=512):
     FK = np.fft.rfftn(FX) * (box_size/FX.shape[0])**FX.ndim
     if interlace_with_FX is not None:
         FK += np.fft.rfftn(interlace_with_FX) * (box_size/interlace_with_FX.shape[0])**interlace_with_FX.ndim
@@ -19,6 +19,14 @@ def compute_power_spec(FX,box_size, interlace_with_FX=None):
                                          np.fft.rfftfreq(FX.shape[-1], d=box_size/FX.shape[-1]) *2*np.pi))
 
     assert FK.shape == K.shape[1:], "Reshape needed fftfreq"
+
+    win_correct_power = ['NGP', 'CIC', 'TSC'].index(Win_correct_scheme) + 1
+    k_nyq = np.pi * grid_size / box_size
+
+    FK /= ( np.sinc(K[0]/(2*k_nyq)) * np.sinc(K[1]/(2*k_nyq)) * np.sinc(K[2]/(2*k_nyq)))**(win_correct_power)
+
+    if interlace_with_FX is not None:
+        FK /= ( 1 + np.exp(-np.pi*1j*K.sum(axis=0)/(2*k_nyq)) )/2
 
     k = np.sqrt((K**2).sum(axis=0))
 

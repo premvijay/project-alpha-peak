@@ -36,9 +36,9 @@ parser.add_argument('--light_snaps', type=int, default=1, help='save white bg im
 args = parser.parse_args()
 
 grid_size = 512
-scheme = 'TSC'
+scheme = 'CIC'
 # rundir = 'r1'
-interlaced = False
+interlaced = True
 
 inlcd_str = '_interlaced' if interlaced==True else ''
 
@@ -65,7 +65,7 @@ rundir_str = rundir.replace('/', '_') + '-' + rundirs[-1].split('/')[-1] if len(
 plotsdir = os.path.join(args.plots_into, f'{args.simname:s}_{rundir_str:s}', f'full_box')
 os.makedirs(plotsdir, exist_ok=True)
 
-snapdir = os.path.join(args.simdir, args.simname, rundir)
+snapdir = os.path.join(args.simdir, args.simname, rundir, 'snaps')
 
 def snapfilen_prefix(snapdirectory, snap_i):
     if os.path.exists(os.path.join(snapdir, f'snapdir_{snap_i:03d}')):
@@ -224,7 +224,7 @@ for index, i in enumerate(i_list[::-1]):
     power_spec_allrealz = None
 
     for rundir in rundirs:
-        snapdir = os.path.join(args.simdir, args.simname, rundir)
+        snapdir = os.path.join(args.simdir, args.simname, rundir, 'snaps')
         snap = Snapshot(snapfilen(snapdir, i))
         savesdir = os.path.join('/scratch/cprem/sims', args.simname, rundir, 'global', scheme, '{0:d}'.format(grid_size))
         print(savesdir)
@@ -254,8 +254,9 @@ for index, i in enumerate(i_list[::-1]):
     # print(power_spec_folding_grouped1)
 
     power_spec_grouped1 = power_spec_allrealz.groupby(pd.cut(power_spec_allrealz['k'], bins=merge_bin)).mean()
-    win_correct_power = 2*p+1 if interlaced else 2*p
-    power_spec_grouped1['Pk'] /= np.sinc(power_spec_grouped1['k']/(2*k_nyq))**(win_correct_power)
+    # win_correct_power = 2*0+1 if interlaced else 2*0
+    # power_spec_grouped1['Pk'] /= np.sinc(power_spec_grouped1['k']/(2*k_nyq))**(win_correct_power)
+    # power_spec_grouped1['Pk'] /= np.cos(np.pi*power_spec_grouped1['k']/(4*k_nyq))**(win_correct_power)
     ax2.plot(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, linestyle='dashed', label=f"z={f'{round(snap.redshift):f}'.rstrip('0').rstrip('.'):s}")[0]
     ax2.scatter(power_spec_grouped1['k'],power_spec_grouped1['Pk'], color=color, s=4)
 
