@@ -58,11 +58,13 @@ class Snapshot():
             self.N_prtcl_total    = h5file['Header'].attrs['NumPart_Total']   ## Total number of each particle present in the simulation
             self.num_files        = h5file['Header'].attrs['NumFilesPerSnapshot'] ## Number of files in each snapshot
             self.box_size         = h5file['Header'].attrs['BoxSize']  ## Gives the box size if periodic boundary conditions are used
-            self.Omega_m_0        = h5file['Parameters'].attrs['Omega0']     ## Matter density at z = 0 in the units of critical density
-            self.Omega_Lam_0      = h5file['Parameters'].attrs['OmegaLambda'] ## Vacuum Energy Density at z=0 in the units of critical density
-            self.Hubble_param     = h5file['Parameters'].attrs['HubbleParam'] ## gives the hubble constant in units of 100 kms^-1Mpc^-1  
-            self.num_part_types   = h5file['Config'].attrs['NTYPES']
-            self.params           = h5file['Parameters'].attrs
+            # self.Omega_m_0        = h5file['Parameters'].attrs['Omega0']     ## Matter density at z = 0 in the units of critical density
+            # self.Omega_Lam_0      = h5file['Parameters'].attrs['OmegaLambda'] ## Vacuum Energy Density at z=0 in the units of critical density
+            # self.Hubble_param     = h5file['Parameters'].attrs['HubbleParam'] ## gives the hubble constant in units of 100 kms^-1Mpc^-1  
+            # # self.num_part_types   = h5file['Config'].attrs['NTYPES']
+            # self.params           = h5file['Parameters'].attrs
+
+            self.h5file = h5file
 
         self.prtcl_types = ["Gas","Halo","Disk",  "Bulge", "Stars", "Bndry"]
         
@@ -87,10 +89,10 @@ class Snapshot():
             return posd
 
         elif self.filetype == 'gadget_hdf5':
-            h5file = self.h5py.File(self.filename, 'r')
+            # h5file = self.h5py.File(self.filename, 'r')
             # if prtcl_type=="Halo": 
             type_num = self.prtcl_types.index(prtcl_type)
-            return h5file[f'PartType{type_num:d}']['Coordinates'][:]
+            return self.h5file[f'PartType{type_num:d}']['Coordinates'][:]
 
     def velocities(self, prtcl_type="Halo",max_prtcl=None):
         if self.filetype == 'gadget_binary':
@@ -113,10 +115,20 @@ class Snapshot():
             return veld
 
         elif self.filetype == 'gadget_hdf5':
-            h5file = self.h5py.File(self.filename, 'r')
+            # h5file = self.h5py.File(self.filename, 'r')
             # if prtcl_type=="Halo": 
             type_num = self.prtcl_types.index(prtcl_type)
-            return h5file[f'PartType{type_num:d}']['Velocities'][:]
+            return self.h5file[f'PartType{type_num:d}']['Velocities'][:]
+
+    def IDs(self, prtcl_type="Halo",max_prtcl=None):
+        if self.filetype == 'gadget_binary':
+            raise NotImplementedError
+
+        elif self.filetype == 'gadget_hdf5':
+            # h5file = self.h5py.File(self.filename, 'r')
+            # if prtcl_type=="Halo": 
+            type_num = self.prtcl_types.index(prtcl_type)
+            return self.h5file[f'PartType{type_num:d}']['ParticleIDs'][:]
 
 
 
@@ -133,10 +145,10 @@ def read_positions_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10
         if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.{0:d}'.format(file_number)
         if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.{0:d}'.format(file_number) + '.hdf5'
     
-        print(filepath)
+        # print(filepath, os.path.exists(filepath))
 
-        snap = Snapshot()
-        snap.from_binary(filepath)
+        snap = Snapshot(filepath)
+        # snap.from_binary()
 
         posd_thisfile = snap.positions(prtcl_type=prtcl_type, max_prtcl=None)
         if downsample != 1:
@@ -196,6 +208,61 @@ def read_velocities_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=1
     del vel_list[:]
 
     return veld
+
+def read_partIDs_all_files(snapshot_filepath_prefix,downsample=1, rand_seed=10, prtcl_type='Halo'):
+    pID_list = []
+    np.random.seed(rand_seed)
+
+    file_number = 0
+    while True:
+        filepath = snapshot_filepath_prefix + ''
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.hdf5'
+
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.{0:d}'.format(file_number)
+        if not os.path.exists(filepath): filepath = snapshot_filepath_prefix + '.{0:d}'.format(file_number) + '.hdf5'
+    
+        print(filepath, os.path.exists(filepath))
+
+        snap = Snapshot()
+        snap.from_binary(filepath)
+
+        pID_thisfile = snap.IDs(prtcl_type=prtcl_type, max_prtcl=None)
+        if downsample != 1:
+            rand_ind = np.random.choice(pID_thisfile.shape[0], size=pID_thisfile.shape[0]//downsample, replace=False)
+            # print(snap.N_prtcl_thisfile, downsample, 'n', snap.N_prtcl_thisfile//downsample, rand_ind)
+            pID_thisfile = pID_thisfile[rand_ind]
+
+
+        pID_list.append(pID_thisfile)
+        if file_number == snap.num_files-1:
+            break
+        else:
+            file_number += 1
+
+    pID = np.concatenate(pID_list)
+    del pID_list[:]
+    del pID_list
+    gc.collect()
+
+    return pID
+
+
+def read_all_hdf5(quantity, prtcl_type_num, filename_pref):
+    import h5py
+    prtcl_type_str = 'PartType'+str(int(prtcl_type_num))
+    i=0
+    filename = filename_pref + f'.{i:d}.hdf5'
+    h5file = h5py.File(filename, 'r')
+    N = h5file['Header'].attrs['NumFilesPerSnapshot']
+    data_list = []
+    while i<N:
+        filename = filename_pref + f'.{i:d}.hdf5'
+        h5file = h5py.File(filename, 'r')
+        data_list.append( h5file[f'PartType{prtcl_type_num:d}'][quantity] )
+        i+=1
+    return np.concatenate(data_list, axis=0)
+        
+
 
 
 

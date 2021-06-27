@@ -99,7 +99,16 @@ class CubeRegion:
             diff = np.fabs(posd-self.cen)
             select_index = (np.minimum(diff, self.box_size-diff) < self.side/2 ).all(axis=1).nonzero()
         elif engine.lower()=='c++':
-            select_index = (select_particles.within_sphere(posd, *self.cen, self.side, self.box_size)).nonzero()
+            t_now = time()
+            select_cond_bool = select_particles.within_cube(posd, *self.cen, self.side, self.box_size)
+            t_bef, t_now = t_now, time()
+            print("\n    selection bool array obtained")
+            print(t_now-t_bef)
+            select_index = select_cond_bool.nonzero()
+            t_bef, t_now = t_now, time()
+            print("\n    selection index array obtained")
+            print(t_now-t_bef)
+            # select_index = (select_particles.within_sphere(posd, *self.cen, self.side, self.box_size)).nonzero()
 
         return select_index
 
